@@ -35,6 +35,9 @@ const activeItemSchema = new mongoose.Schema({
   },
   tokenUri: { // IPFS url
     type: String,
+  },
+  charityImage: {
+    type: String
   }
 });
 
