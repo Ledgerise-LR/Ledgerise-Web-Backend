@@ -30,10 +30,10 @@ const activeItemSchema = new mongoose.Schema({
   price: {
     type: String
   },
-  subCollectionId: {
-    type: String
+  subcollectionId: {
+    type: Number
   },
-  tokenURI: { // IPFS url
+  tokenUri: { // IPFS url
     type: String,
   }
 });

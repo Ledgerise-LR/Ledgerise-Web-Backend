@@ -12,7 +12,7 @@ const provider = new ethers.providers.WebSocketProvider(process.env.URL);
 
 module.exports = async () => {
   const marketplace = new ethers.Contract(marketplaceAddress, abi, provider);
-  marketplace.on("ItemListed", (seller, nftAddress, tokenId, charityAddress, price, tokenUri) => {
+  marketplace.on("ItemListed", (seller, nftAddress, tokenId, charityAddress, price, tokenUri, subcollectionId) => {
     const itemId = getIdFromParams(nftAddress, tokenId);
     const args = {
       itemId: itemId,
@@ -22,7 +22,8 @@ module.exports = async () => {
       tokenId: tokenId.toNumber(),
       charityAddress: charityAddress.toString(),
       price: price.toString(), // 18 decimals (Wei)
-      tokenUri: tokenUri.toString() // will be uploaded to pinata from react
+      tokenUri: tokenUri.toString(), // will be uploaded to pinata from react
+      subcollectionId: subcollectionId.toString()
     }
 
     ActiveItem.findOne({ itemId: itemId }, (err, activeItemFetched) => {
@@ -34,6 +35,7 @@ module.exports = async () => {
         activeItemFetched.nftAddress = nftAddress;
         activeItemFetched.price = price;
         activeItemFetched.tokenUri = tokenUri
+        activeItemFetched.subcollectionId = subcollectionId
         activeItemFetched.save();
       } else if (!activeItemFetched) {
         ActiveItem.createActiveItem(args, (err, newActiveItem) => {

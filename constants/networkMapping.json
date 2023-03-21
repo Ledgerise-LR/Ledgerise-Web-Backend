@@ -2,5 +2,8 @@
   "Marketplace": {
     "31337": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
     "5": "0xCcfec35F6Eef1ade6a255328a4a1bFCF3830DC6D"
+  },
+  "MainCollection": {
+    "5": "0x757C293Fc60c5E81c8C8cD45826e122645b0C2d5"
   }
 }

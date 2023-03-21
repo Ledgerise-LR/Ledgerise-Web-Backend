@@ -44,6 +44,15 @@ const auctionItemSchema = new mongoose.Schema({
   }
 });
 
+auctionItemSchema.statics.createAuctionItem = function (body, callback) {
+  const newAuctionItem = new AuctionItem(body);
+  if (newAuctionItem) {
+    newAuctionItem.save();
+    return callback(null, newAuctionItem);
+  }
+  return callback("bad_request");
+}
+
 const AuctionItem = mongoose.model("AuctionItem", auctionItemSchema);
 
 module.exports = AuctionItem
