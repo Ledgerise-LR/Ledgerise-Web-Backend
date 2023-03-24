@@ -49,6 +49,31 @@ app.get("/get-single-collection", (req, res) => {
   })
 })
 
+app.get("/get-random-featured-nft", (req, res) => {
+  ActiveItem.countDocuments({}, (err, documentCount) => {
+    let randomTokenId = Math.floor(Math.random() * document);
+    while (true) {
+      if (randomTokenId != req.previousTokenId) {
+        ActiveItem.findOne({ tokenId: randomTokenId }, (err, randomAsset) => {
+          if (err) return console.log("bad_request");
+          subcollection.findOne({ itemId: randomAsset.subcollectionId }, (err, subcollection) => {
+            if (err) return console.log("bad_request");
+            const data = {
+              tokenUri: randomAsset.tokenUri,
+              tokenId: randomAsset.tokenId,
+              totalRaised: subcollection.totalRaised,
+              collectionName: subcollection.name,
+              charityAddress: randomAsset.charityAddress
+            }
+            return res.status(200).json({ data: data });
+          })
+        })
+      }
+      randomTokenId = Math.floor(Math.random() * document);
+    }
+  })
+})
+
 server.listen(PORT, async () => {
 
   handleItemBought();
