@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const networkMapping = require("../constants/networkMapping.json");
 const abis = require("../constants/abi.json");
 const { storeImages, storeUriMetadata } = require("../utils/uploadToPinata");
+const { ethers } = require("ethers")
 
 const activeItemSchema = new mongoose.Schema({
   itemId: {
@@ -38,8 +39,87 @@ const activeItemSchema = new mongoose.Schema({
   },
   charityImage: {
     type: String
+  },
+  history: [
+    event = {
+      key: {
+        type: String  // buy, list
+      },
+      date: {
+        type: String
+      },
+      price: {
+        type: String
+      },
+      buyer: {
+        type: String
+      },
+      openseaTokenId: {
+        type: Number
+      }
+    }
+  ],
+
+  availableEditions: {
+    type: Number
+  },
+
+  timestamp_created: {
+    type: Date,
+    default: Date.now
   }
 });
+
+function getFiltersByQueries(priceRange, editionRange, subcollectionId) {
+  let priceFilters;
+  if (priceRange) {
+    priceFilters = priceRange.split(",").map(range => {
+      const [min, max] = range.split("-");
+      return {
+        price: { $gte: ethers.utils.parseEther(min).toString(), $lte: ethers.utils.parseEther(max).toString() }
+      };
+    });
+  }
+
+  let editionFilters;
+  if (editionRange) {
+    console.log(editionRange)
+    editionFilters = editionRange.split(",").map(range => {
+      const [min, max] = range.split("-");
+      return {
+        availableEditions: { $gte: parseInt(min), $lte: parseInt(max) }
+      };
+    });
+    console.log(editionFilters)
+  }
+
+  let filters = {};
+  if (editionRange && priceRange) {
+    filters = {
+      subcollectionId: subcollectionId,
+      $and: [...priceFilters, ...editionFilters]
+    };
+  } else if (editionRange && !priceRange) {
+    filters = {
+      subcollectionId: subcollectionId,
+      $or: [...editionFilters]
+    };
+  } else if (!editionRange && priceRange) {
+    filters = {
+      subcollectionId: subcollectionId,
+      $or: [...priceFilters]
+    };
+  } else if (!editionRange && !priceRange) {
+    filters = {
+      subcollectionId: subcollectionId
+    };
+  }
+
+  console.log("-----------");
+  console.log(filters.$or);
+
+  return filters;
+}
 
 activeItemSchema.statics.createActiveItem = function (body, callback) {
   const newActiveItem = new ActiveItem(body);
@@ -48,6 +128,53 @@ activeItemSchema.statics.createActiveItem = function (body, callback) {
     return callback(null, newActiveItem);
   }
   return callback("bad_request");
+}
+
+
+activeItemSchema.statics.sortDefault = function (body, callback) {
+  const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
+  ActiveItem.find(filters, (err, docs) => {
+    if (err) return callback(err);
+    return callback(null, docs);
+  })
+}
+
+
+activeItemSchema.statics.sortPriceAscending = function (body, callback) {
+  const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
+  ActiveItem.find(filters)
+    .sort({ price: 1 }).exec((err, docs) => {
+      if (err) return callback(err);
+      return callback(null, docs);
+    });
+}
+
+activeItemSchema.statics.sortPriceDescending = function (body, callback) {
+  const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
+
+  ActiveItem.find(filters)
+    .sort({ price: -1 }).exec((err, docs) => {
+      if (err) return callback(err);
+      return callback(null, docs);
+    });
+}
+
+activeItemSchema.statics.sortOldest = function (body, callback) {
+  const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
+
+  ActiveItem.find(filters).sort({ timestamp_created: 1 }).exec((err, docs) => {
+    if (err) return callback(err);
+    return callback(null, docs);
+  });
+}
+
+activeItemSchema.statics.sortNewest = function (body, callback) {
+  const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
+
+  ActiveItem.find(filters).sort({ timestamp_created: -1 }).exec((err, docs) => {
+    if (err) return callback(err);
+    return callback(null, docs);
+  });
 }
 
 const ActiveItem = mongoose.model("ActiveItem", activeItemSchema);
