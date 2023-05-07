@@ -43,7 +43,7 @@ const activeItemSchema = new mongoose.Schema({
   history: [
     event = {
       key: {
-        type: String  // buy, list
+        type: String  // buy, list, update
       },
       date: {
         type: String
@@ -56,6 +56,9 @@ const activeItemSchema = new mongoose.Schema({
       },
       openseaTokenId: {
         type: Number
+      },
+      transactionHash: {
+        type: String
       }
     }
   ],

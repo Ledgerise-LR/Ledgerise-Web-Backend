@@ -21,7 +21,7 @@ mongoose.connect(mongoUri, {
 });
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3001'); // Replace with your Next.js domain
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Replace with your Next.js domain
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
@@ -50,24 +50,59 @@ app.get("/get-single-collection", (req, res) => {
   })
 })
 
+function getRandomTokenId(count, previousTokenId) {
+  let randomTokenId;
+  do {
+    randomTokenId = Math.floor(Math.random() * count);
+  } while (previousTokenId === randomTokenId);
+  console.log(randomTokenId)
+  return randomTokenId;
+}
+
+
 app.get("/get-random-featured-nft", (req, res) => {
-  ActiveItem.countDocuments({}, (err, documentCount) => {
-    const previousTokenId = req.query.previousTokenId;
-    let randomTokenId = Math.floor(Math.random() * documentCount);
-    ActiveItem.findOne({ tokenId: randomTokenId }, (err, randomAsset) => {
-      if (err) return console.log("bad_request");
-      subcollection.findOne({ itemId: randomAsset.subcollectionId.toString() }, (err, subcollection) => {
-        if (err) return console.log("bad_request");
-        const data = {
-          tokenUri: randomAsset.tokenUri,
-          tokenId: randomAsset.tokenId,
-          totalRaised: subcollection.totalRaised,
-          collectionName: subcollection.name,
-          charityAddress: randomAsset.charityAddress
-        }
-        return res.status(200).json({ data: data });
-      })
-    })
+  let previousItemTokenId = Number(req.query.previousTokenId);
+  console.log("prev", req.query.previousTokenId)
+  ActiveItem.countDocuments((err, count) => {
+
+    if (err || !count || count == 0) return console.log("No activeItem count.");
+    if (count) {
+      let randomTokenId = getRandomTokenId(count, previousItemTokenId);
+      let randomItem = 0;
+      do {
+        ActiveItem.findOne({ tokenId: randomTokenId }, (err, activeItem) => {
+          randomItem = activeItem;
+          if (err) return console.log("Cannot find the random active item.");
+          if (!activeItem) {
+            randomItem = null;
+            let problematicTokenId = randomTokenId;
+            do {
+              randomTokenId = getRandomTokenId(count, previousItemTokenId);
+            } while (problematicTokenId == randomTokenId);
+          }
+          try {
+            subcollection.findOne({ itemId: activeItem.subcollectionId }, (err, collection) => {
+              if (err || !collection) return console.log("Couldn't fetch collection.");
+              if (collection) {
+                let data = {
+                  tokenUri: activeItem.tokenUri,
+                  tokenId: activeItem.tokenId,
+                  totalRaised: collection.totalRaised,
+                  collectionName: collection.name,
+                  charityAddress: collection.charityAddress,
+                  nftAddress: activeItem.nftAddress
+                }
+                return res.status(200).json({ data: data });
+              }
+            })
+          } catch (e) {
+            ;
+          }
+        })
+      } while (randomItem == null);
+
+
+    }
   })
 })
 

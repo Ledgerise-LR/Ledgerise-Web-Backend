@@ -234,6 +234,12 @@
         "internalType": "uint256",
         "name": "price",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "openseaTokenId",
+        "type": "uint256"
       }
     ],
     "name": "ItemBought",
@@ -300,6 +306,12 @@
         "internalType": "string",
         "name": "tokenUri",
         "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "subcollectionId",
+        "type": "uint256"
       }
     ],
     "name": "ItemListed",

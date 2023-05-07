@@ -36,11 +36,29 @@ module.exports = async () => {
         activeItemFetched.price = price;
         activeItemFetched.tokenUri = tokenUri
         activeItemFetched.subcollectionId = subcollectionId
+        const currentDate = new Date();
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+        activeItemFetched.history.push({
+          key: "update",
+          date: formattedDate,
+          price: price
+        })
         activeItemFetched.save();
       } else if (!activeItemFetched) {
         ActiveItem.createActiveItem(args, (err, newActiveItem) => {
           if (err) return "item_creation_fail";
           if (newActiveItem) {
+            const currentDate = new Date();
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+            const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+            newActiveItem.history.push({
+              key: "list",
+              date: formattedDate,
+              price: price
+            })
             console.log(`activeItem created with id: ${newActiveItem.itemId}`);
           }
         })

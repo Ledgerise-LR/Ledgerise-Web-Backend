@@ -23,8 +23,8 @@ const subcollectionSchema = new mongoose.Schema({
     type: String
   },
   totalRaised: {
-    type: Number,
-    default: 0
+    type: String,
+    default: "0"
   }
 });
 
