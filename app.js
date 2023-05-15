@@ -5,14 +5,16 @@ const abi = require("./constants/abi.json");
 const ActiveItem = require("./models/ActiveItem");
 const subcollection = require("./models/Subcollection");
 const mongoose = require("mongoose");
-require("dotenv").config()
+require("dotenv").config();
 const app = express();
-const { getIdFromParams } = require("./utils/getIdFromParams")
+const { getIdFromParams } = require("./utils/getIdFromParams");
+const updateAttributes = require("./utils/updateAttributes");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
 
-const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollectionCreated } = require("./listeners/exportListeners");
+const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollectionCreated, handleAuctionCreated } = require("./listeners/exportListeners");
+const AuctionItem = require("./models/AuctionItem");
 
 const mongoUri = "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {
@@ -28,6 +30,12 @@ app.use((req, res, next) => {
 
 app.get("/get-asset", (req, res) => {
   ActiveItem.findOne({ tokenId: req.query.tokenId }, (err, activeItem) => {
+    res.status(200).json({ activeItem });
+  })
+})
+
+app.get("/get-auction", (req, res) => {
+  AuctionItem.findOne({ tokenId: req.query.tokenId }, (err, activeItem) => {
     res.status(200).json({ activeItem });
   })
 })
@@ -55,61 +63,37 @@ function getRandomTokenId(count, previousTokenId) {
   do {
     randomTokenId = Math.floor(Math.random() * count);
   } while (previousTokenId === randomTokenId);
-  console.log(randomTokenId)
   return randomTokenId;
 }
 
-
+let randomIndexPrev = 0;
 app.get("/get-random-featured-nft", (req, res) => {
-  let previousItemTokenId = Number(req.query.previousTokenId);
-  console.log("prev", req.query.previousTokenId)
-  ActiveItem.countDocuments((err, count) => {
+  ActiveItem.find({}, (err, activeItems) => {
+    if (err) return console.log("bad_request");
+    let randomIndex;
+    do {
+      randomIndex = Math.floor(Math.random() * activeItems.length);
+    } while (randomIndex == randomIndexPrev);
+    subcollection.findOne({ itemId: activeItems[randomIndex].subcollectionId }, (err, collection) => {
+      randomIndexPrev = randomIndex;
+      return res.json({
+        data: asset = {
+          tokenId: activeItems[randomIndex].tokenId,
+          tokenUri: activeItems[randomIndex].tokenUri,
+          totalRaised: collection.totalRaised,
+          collectionName: collection.collectionName,
+          charityAddress: collection.charityAddress,
+          nftAddress: activeItems[randomIndex].nftAddress
+        }
+      });
+    })
 
-    if (err || !count || count == 0) return console.log("No activeItem count.");
-    if (count) {
-      let randomTokenId = getRandomTokenId(count, previousItemTokenId);
-      let randomItem = 0;
-      do {
-        ActiveItem.findOne({ tokenId: randomTokenId }, (err, activeItem) => {
-          randomItem = activeItem;
-          if (err) return console.log("Cannot find the random active item.");
-          if (!activeItem) {
-            randomItem = null;
-            let problematicTokenId = randomTokenId;
-            do {
-              randomTokenId = getRandomTokenId(count, previousItemTokenId);
-            } while (problematicTokenId == randomTokenId);
-          }
-          try {
-            subcollection.findOne({ itemId: activeItem.subcollectionId }, (err, collection) => {
-              if (err || !collection) return console.log("Couldn't fetch collection.");
-              if (collection) {
-                let data = {
-                  tokenUri: activeItem.tokenUri,
-                  tokenId: activeItem.tokenId,
-                  totalRaised: collection.totalRaised,
-                  collectionName: collection.name,
-                  charityAddress: collection.charityAddress,
-                  nftAddress: activeItem.nftAddress
-                }
-                return res.status(200).json({ data: data });
-              }
-            })
-          } catch (e) {
-            ;
-          }
-        })
-      } while (randomItem == null);
-
-
-    }
   })
 })
 
 app.get("/sort/price-ascending", (req, res) => {
   ActiveItem.sortPriceAscending(req.query, (err, docs) => {
     if (err) return console.log("bad_request");
-    console.log(docs)
     return res.status(200).json({ activeItems: docs });
   })
 })
@@ -117,7 +101,6 @@ app.get("/sort/price-ascending", (req, res) => {
 app.get("/sort/price-descending", (req, res) => {
   ActiveItem.sortPriceDescending(req.query, (err, docs) => {
     if (err) return console.log("bad_request");
-    console.log(docs)
     return res.status(200).json({ activeItems: docs });
   })
 })
@@ -136,12 +119,32 @@ app.get("/sort/newest", (req, res) => {
   })
 })
 
+app.get("/get-all-items-collection", (req, res) => {
+  ActiveItem.find({ subcollectionId: req.query.subcollectionId }, (err, docs) => {
+    if (err) return console.log("bad_request");
+    return res.status(200).json({ activeItems: docs });
+  })
+})
+
+
+app.get("/get-all-auction-items", (req, res) => {
+  AuctionItem.find({}, (err, auctionItems) => {
+    if (err) return console.log("bad_request");
+    if (auctionItems) return res.status(200).json({ auctionItems })
+  })
+})
+
+
 server.listen(PORT, async () => {
 
+  // updateAttributes();
   handleItemBought();
   handleItemCanceled();
   handleItemListed();
   handleSubcollectionCreated();
+
+  handleAuctionCreated();
+
   console.log("Server is listening on port", PORT);
 })
 

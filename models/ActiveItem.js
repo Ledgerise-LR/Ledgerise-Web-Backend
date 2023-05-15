@@ -63,6 +63,26 @@ const activeItemSchema = new mongoose.Schema({
     }
   ],
 
+  real_item_history: [  // ! important ! currently running on centralized Web2.0. However it is too easy to store this on Blockchain.
+    event = {
+      key: {
+        type: String  // stamped, shipped, delivered
+      },
+      buyer: {  // Included in qr code
+        type: String
+      },
+      openseaTokenId: {  // Included in qr code
+        type: Number
+      },
+      date: {
+        type: Number
+      },
+      location: {  // will be comed as hashed will not be tamperable
+        type: String
+      }
+    }
+  ],
+
   availableEditions: {
     type: Number
   },
@@ -70,7 +90,9 @@ const activeItemSchema = new mongoose.Schema({
   timestamp_created: {
     type: Date,
     default: Date.now
-  }
+  },
+
+  attributes: []
 });
 
 function getFiltersByQueries(priceRange, editionRange, subcollectionId) {
@@ -178,6 +200,10 @@ activeItemSchema.statics.sortNewest = function (body, callback) {
     if (err) return callback(err);
     return callback(null, docs);
   });
+}
+
+activeItemSchema.statics.saveRealItemHistory = function (body, callback) {
+  console.log(body);
 }
 
 const ActiveItem = mongoose.model("ActiveItem", activeItemSchema);

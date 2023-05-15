@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 const networkMapping = require("../constants/networkMapping.json");
 const abis = require("../constants/abi.json");
+const { getIdFromParams } = require("../utils/getIdFromParams");
 
 const auctionItemSchema = new mongoose.Schema({
   itemId: {
@@ -12,7 +13,6 @@ const auctionItemSchema = new mongoose.Schema({
   },
   seller: {
     type: String,
-    required: true
   },
   nftAddress: {
     type: String
@@ -27,7 +27,8 @@ const auctionItemSchema = new mongoose.Schema({
     type: String
   },
   currentBidder: {
-    type: String
+    type: String,
+    default: ""
   },
   interval: {
     type: String
@@ -41,12 +42,43 @@ const auctionItemSchema = new mongoose.Schema({
   },
   creator: {
     type: String
-  }
+  },
+  history: [
+    event = {
+      key: {
+        type: String  // create, bid, complete
+      },
+      date: {
+        type: String
+      },
+      price: {
+        type: String
+      },
+      bidder: {
+        type: String
+      },
+      winner: {
+        type: String
+      },
+      openseaTokenId: {
+        type: Number
+      },
+      transactionHash: {
+        type: String
+      }
+    }
+  ],
+  startTime: {
+    type: String,
+    default: Date.now
+  },
+  attributes: []
 });
 
 auctionItemSchema.statics.createAuctionItem = function (body, callback) {
   const newAuctionItem = new AuctionItem(body);
   if (newAuctionItem) {
+    newAuctionItem.itemId = getIdFromParams(newAuctionItem.nftAddress, newAuctionItem.tokenId);
     newAuctionItem.save();
     return callback(null, newAuctionItem);
   }
