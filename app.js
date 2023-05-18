@@ -9,6 +9,7 @@ require("dotenv").config();
 const app = express();
 const { getIdFromParams } = require("./utils/getIdFromParams");
 const updateAttributes = require("./utils/updateAttributes");
+const bodyParser = require('body-parser');
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
@@ -21,6 +22,8 @@ mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
+
+app.use(bodyParser.json());
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Replace with your Next.js domain
@@ -132,6 +135,13 @@ app.get("/get-all-auction-items", (req, res) => {
     if (err) return console.log("bad_request");
     if (auctionItems) return res.status(200).json({ auctionItems })
   })
+})
+
+app.post("/save-real-item-history", (req, res) => {
+  ActiveItem.saveRealItemHistory(req.body.data, (err, activeItem) => {
+    if (err) return res.status(200).json({ err: "QR code doesn't met requirements." });
+    return res.status(200).json({ activeItem });
+  });
 })
 
 

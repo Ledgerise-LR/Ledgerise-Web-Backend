@@ -2,8 +2,9 @@
 const mongoose = require("mongoose");
 const networkMapping = require("../constants/networkMapping.json");
 const abis = require("../constants/abi.json");
-const { storeImages, storeUriMetadata } = require("../utils/uploadToPinata");
-const { ethers } = require("ethers")
+const { ethers } = require("ethers");
+const CryptoJS = require("crypto-js");
+require("dotenv").config();
 
 const activeItemSchema = new mongoose.Schema({
   itemId: {
@@ -66,7 +67,7 @@ const activeItemSchema = new mongoose.Schema({
   real_item_history: [  // ! important ! currently running on centralized Web2.0. However it is too easy to store this on Blockchain.
     event = {
       key: {
-        type: String  // stamped, shipped, delivered
+        type: String  // stamp, shipped, delivered
       },
       buyer: {  // Included in qr code
         type: String
@@ -75,10 +76,10 @@ const activeItemSchema = new mongoose.Schema({
         type: Number
       },
       date: {
-        type: Number
+        type: String
       },
       location: {  // will be comed as hashed will not be tamperable
-        type: String
+        type: Object
       }
     }
   ],
@@ -108,14 +109,12 @@ function getFiltersByQueries(priceRange, editionRange, subcollectionId) {
 
   let editionFilters;
   if (editionRange) {
-    console.log(editionRange)
     editionFilters = editionRange.split(",").map(range => {
       const [min, max] = range.split("-");
       return {
         availableEditions: { $gte: parseInt(min), $lte: parseInt(max) }
       };
     });
-    console.log(editionFilters)
   }
 
   let filters = {};
@@ -139,9 +138,6 @@ function getFiltersByQueries(priceRange, editionRange, subcollectionId) {
       subcollectionId: subcollectionId
     };
   }
-
-  console.log("-----------");
-  console.log(filters.$or);
 
   return filters;
 }
@@ -203,7 +199,37 @@ activeItemSchema.statics.sortNewest = function (body, callback) {
 }
 
 activeItemSchema.statics.saveRealItemHistory = function (body, callback) {
-  console.log(body);
+
+  const decryptedBody = CryptoJS.AES.decrypt(body, process.env.AES_HASH_SECRET_KEY);
+  const decryptObject = JSON.parse(decryptedBody.toString(CryptoJS.enc.Utf8));
+
+  if (decryptObject.key == "stamp" || decryptObject.key == "shipped" || decryptObject.key == "delivered") {
+
+    if (typeof decryptObject.location.longitude == "number" && typeof decryptObject.location.latitude == "number") {
+      ActiveItem.findOne({ tokenId: decryptObject.marketplaceTokenId }, (err, activeItem) => {
+
+        if (err) return callback(err, null);
+
+        activeItem.real_item_history.push({
+          key: decryptObject.key,
+          buyer: decryptObject.buyer,
+          openseaTokenId: decryptObject.openseaTokenId,
+          date: decryptObject.date,
+          location: {  // will be comed as hashed will not be tamperable
+            latitude: decryptObject.location.latitude,
+            longitude: decryptObject.location.longitude
+          }
+        });
+
+        activeItem.save();
+        return callback(null, activeItem)
+      })
+    } else {
+      return callback("bad_request", null);
+    }
+  } else {
+    return callback("bad_request", null);
+  }
 }
 
 const ActiveItem = mongoose.model("ActiveItem", activeItemSchema);
