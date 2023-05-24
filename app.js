@@ -61,14 +61,6 @@ app.get("/get-single-collection", (req, res) => {
   })
 })
 
-function getRandomTokenId(count, previousTokenId) {
-  let randomTokenId;
-  do {
-    randomTokenId = Math.floor(Math.random() * count);
-  } while (previousTokenId === randomTokenId);
-  return randomTokenId;
-}
-
 let randomIndexPrev = 0;
 app.get("/get-random-featured-nft", (req, res) => {
   ActiveItem.find({}, (err, activeItems) => {

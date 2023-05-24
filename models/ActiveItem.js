@@ -4,6 +4,7 @@ const networkMapping = require("../constants/networkMapping.json");
 const abis = require("../constants/abi.json");
 const { ethers } = require("ethers");
 const CryptoJS = require("crypto-js");
+const async = require("async");
 require("dotenv").config();
 
 const activeItemSchema = new mongoose.Schema({
@@ -96,48 +97,25 @@ const activeItemSchema = new mongoose.Schema({
   attributes: []
 });
 
-function getFiltersByQueries(priceRange, editionRange, subcollectionId) {
-  let priceFilters;
-  if (priceRange) {
-    priceFilters = priceRange.split(",").map(range => {
-      const [min, max] = range.split("-");
-      return {
-        price: { $gte: ethers.utils.parseEther(min).toString(), $lte: ethers.utils.parseEther(max).toString() }
-      };
-    });
+function getFiltersByQueries(priceRange, editionRange) {
+
+  const filters = {
+    priceFilters: [],
+    editionFilters: []
   }
 
-  let editionFilters;
-  if (editionRange) {
-    editionFilters = editionRange.split(",").map(range => {
-      const [min, max] = range.split("-");
-      return {
-        availableEditions: { $gte: parseInt(min), $lte: parseInt(max) }
-      };
-    });
-  }
+  priceRange
+    ? priceRange.split(",").forEach(element => {
+      filters.priceFilters.push(element)
+    })
+    : ""
 
-  let filters = {};
-  if (editionRange && priceRange) {
-    filters = {
-      subcollectionId: subcollectionId,
-      $and: [...priceFilters, ...editionFilters]
-    };
-  } else if (editionRange && !priceRange) {
-    filters = {
-      subcollectionId: subcollectionId,
-      $or: [...editionFilters]
-    };
-  } else if (!editionRange && priceRange) {
-    filters = {
-      subcollectionId: subcollectionId,
-      $or: [...priceFilters]
-    };
-  } else if (!editionRange && !priceRange) {
-    filters = {
-      subcollectionId: subcollectionId
-    };
-  }
+  editionRange
+    ? editionRange.split(",").forEach(element => {
+      filters.editionFilters.push(element)
+    })
+    : ""
+
 
   return filters;
 }
@@ -152,11 +130,75 @@ activeItemSchema.statics.createActiveItem = function (body, callback) {
 }
 
 
+let priceFilteredArray = [];
+let editionFilteredArray = [];
+
 activeItemSchema.statics.sortDefault = function (body, callback) {
-  const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
-  ActiveItem.find(filters, (err, docs) => {
+
+  priceFilteredArray = [];
+  editionFilteredArray = [];
+
+  const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter);
+  ActiveItem.find({
+    subcollectionId: body.subcollectionId,
+  }, (err, activeItems) => {
+
     if (err) return callback(err);
-    return callback(null, docs);
+
+    if (filters.priceFilters[0] == undefined && filters.editionFilters[0] == undefined) return callback(null, activeItems)
+
+    filters.priceFilters[0] != undefined
+
+      ? async.timesSeries(activeItems.length, (i, next) => {
+        const activeItem = activeItems[i];
+        const price = parseFloat(ethers.utils.formatEther(activeItem.price, "ether"));
+
+        let flag = 0;
+
+        filters.priceFilters.forEach(eachPriceFilter => {
+
+          const [min, max] = eachPriceFilter.split("-");
+          if (price >= parseFloat(min) && price <= parseFloat(max)) {
+            flag = 1;
+          }
+        })
+
+        if (flag) priceFilteredArray.push(activeItem);
+        next();
+
+      }, (err) => {
+        if (err) return callback(err);
+      })
+
+      : priceFilteredArray = activeItems
+
+    console.log(priceFilteredArray.length)
+
+    filters.editionFilters[0] != undefined
+      ? async.timesSeries(priceFilteredArray.length, (j, next) => {
+        const activeItem = priceFilteredArray[j];
+        const editions = activeItem.availableEditions;
+
+        let flag = 0;
+
+        filters.editionFilters.forEach(eachEditionFilter => {
+          const [min, max] = eachEditionFilter.split("-");
+          if (editions >= parseInt(min) && editions <= parseInt(max)) {
+            flag = 1;
+          }
+        })
+
+        if (flag) editionFilteredArray.push(activeItem);
+        next();
+
+      }, (err) => {
+        if (err) return callback(err);
+      })
+
+      : editionFilteredArray = priceFilteredArray
+
+    return callback(null, editionFilteredArray);
+
   })
 }
 
