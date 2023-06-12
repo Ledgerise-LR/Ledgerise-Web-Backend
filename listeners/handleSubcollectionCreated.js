@@ -7,11 +7,13 @@ require("dotenv").config();
 
 const mainCollectionAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
 
-const provider = new ethers.providers.WebSocketProvider(process.env.URL);
+const provider = new ethers.providers.JsonRpcProvider(process.env.URL);
 
 module.exports = async () => {
   const mainCollection = new ethers.Contract(mainCollectionAddress, abi, provider);
   mainCollection.on("SubcollectionCreated", (id, name, charityAddress, properties) => {
+
+    console.log("got it");
 
     Subcollection.findOne({ itemId: id }, (err, subcollection) => {
       if (err || subcollection) {

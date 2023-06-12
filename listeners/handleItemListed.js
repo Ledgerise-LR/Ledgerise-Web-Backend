@@ -8,7 +8,7 @@ require("dotenv").config();
 
 const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
 
-const provider = new ethers.providers.WebSocketProvider(process.env.URL);
+const provider = new ethers.providers.JsonRpcProvider(process.env.URL);
 
 module.exports = async () => {
   const marketplace = new ethers.Contract(marketplaceAddress, abi, provider);

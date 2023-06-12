@@ -5,6 +5,7 @@ const abis = require("../constants/abi.json");
 const { ethers } = require("ethers");
 const CryptoJS = require("crypto-js");
 const async = require("async");
+const saveToBlockchain = require("../listeners/saveRealItemHistory");
 require("dotenv").config();
 
 const activeItemSchema = new mongoose.Schema({
@@ -81,6 +82,9 @@ const activeItemSchema = new mongoose.Schema({
       },
       location: {  // will be comed as hashed will not be tamperable
         type: Object
+      },
+      transactionHash: {
+        type: String
       }
     }
   ],
@@ -240,7 +244,7 @@ activeItemSchema.statics.sortNewest = function (body, callback) {
   });
 }
 
-activeItemSchema.statics.saveRealItemHistory = function (body, callback) {
+activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
 
   const decryptedBody = CryptoJS.AES.decrypt(body, process.env.AES_HASH_SECRET_KEY);
   const decryptObject = JSON.parse(decryptedBody.toString(CryptoJS.enc.Utf8));
@@ -248,22 +252,48 @@ activeItemSchema.statics.saveRealItemHistory = function (body, callback) {
   if (decryptObject.key == "stamp" || decryptObject.key == "shipped" || decryptObject.key == "delivered") {
 
     if (typeof decryptObject.location.longitude == "number" && typeof decryptObject.location.latitude == "number") {
-      ActiveItem.findOne({ tokenId: decryptObject.marketplaceTokenId }, (err, activeItem) => {
+      ActiveItem.findOne({ tokenId: decryptObject.marketplaceTokenId }, async (err, activeItem) => {
 
         if (err) return callback(err, null);
 
-        activeItem.real_item_history.push({
+        // Save to centralized db
+
+        const realItemHistoryData = {
           key: decryptObject.key,
           buyer: decryptObject.buyer,
           openseaTokenId: decryptObject.openseaTokenId,
           date: decryptObject.date,
-          location: {  // will be comed as hashed will not be tamperable
+          location: {
             latitude: decryptObject.location.latitude,
             longitude: decryptObject.location.longitude
-          }
-        });
+          },
+          transactionHash: ""
+        }
 
+        // Upload to blockchain
+
+        const realItemHistoryBlockchainData = {
+          nftAddress: activeItem.nftAddress,
+          marketplaceTokenId: activeItem.tokenId,
+          key: decryptObject.key,
+          buyer: decryptObject.buyer,
+          openseaTokenId: decryptObject.openseaTokenId,
+          date: decryptObject.date,
+          location: {
+            latitude: parseInt(decryptObject.location.latitude * 1000),
+            longitude: parseInt(decryptObject.location.longitude * 1000),
+            decimals: 3
+          },
+          id: activeItem._id
+        }
+
+        const transactionHash = await saveToBlockchain(realItemHistoryBlockchainData)
+        console.log(transactionHash)
+
+        realItemHistoryData.transactionHash = transactionHash;
+        activeItem.real_item_history.push(realItemHistoryData);
         activeItem.save();
+
         return callback(null, activeItem)
       })
     } else {

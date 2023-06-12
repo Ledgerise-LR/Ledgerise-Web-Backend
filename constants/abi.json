@@ -1,4 +1,9 @@
 [{
+    "inputs": [],
+    "name": "NftMarketplace__DecimalsIncorrect",
+    "type": "error"
+  },
+  {
     "inputs": [{
         "internalType": "address",
         "name": "nftAddress",
@@ -31,6 +36,11 @@
       }
     ],
     "name": "NftMarketplace__ItemNotListed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NftMarketplace__LocationFormatIncorrect",
     "type": "error"
   },
   {
@@ -312,6 +322,12 @@
         "internalType": "uint256",
         "name": "subcollectionId",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "availableEditions",
+        "type": "uint256"
       }
     ],
     "name": "ItemListed",
@@ -333,6 +349,24 @@
       }
     ],
     "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{
+        "indexed": false,
+        "internalType": "address",
+        "name": "nftAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "RealItemHistorySaved",
     "type": "event"
   },
   {
@@ -618,6 +652,69 @@
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
+      }
+    ],
+    "name": "getRealItemHistory",
+    "outputs": [{
+      "components": [{
+          "internalType": "string",
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "date",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "openseaTokenId",
+          "type": "uint256"
+        },
+        {
+          "components": [{
+              "internalType": "uint256",
+              "name": "latitude",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "longitude",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "decimals",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct Marketplace.Location",
+          "name": "location",
+          "type": "tuple"
+        }
+      ],
+      "internalType": "struct Marketplace.RealItemHistory[]",
+      "name": "",
+      "type": "tuple[]"
+    }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{
+        "internalType": "address",
+        "name": "nftAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -825,6 +922,58 @@
       "type": "uint256"
     }],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{
+        "internalType": "address",
+        "name": "nftAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "key",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "date",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "openseaTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "latitude",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "longitude",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "decimals",
+        "type": "uint256"
+      }
+    ],
+    "name": "saveRealItemHistory",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

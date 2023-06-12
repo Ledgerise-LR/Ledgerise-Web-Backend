@@ -139,7 +139,7 @@ app.post("/save-real-item-history", (req, res) => {
 
 server.listen(PORT, async () => {
 
-  // updateAttributes();
+  updateAttributes();
   handleItemBought();
   handleItemCanceled();
   handleItemListed();
