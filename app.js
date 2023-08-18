@@ -136,6 +136,13 @@ app.post("/save-real-item-history", (req, res) => {
   });
 })
 
+app.get("/get-all-active-items", (req, res) => {
+  ActiveItem.find({}, (err, activeItems) => {
+    if (err) return res.status(200).json({ err: "bad_request" });
+    return res.status(200).json({ activeItems });
+  })
+})
+
 
 server.listen(PORT, async () => {
 
