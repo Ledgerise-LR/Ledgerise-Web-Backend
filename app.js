@@ -10,9 +10,12 @@ const app = express();
 const { getIdFromParams } = require("./utils/getIdFromParams");
 const updateAttributes = require("./utils/updateAttributes");
 const bodyParser = require('body-parser');
+const { connectRealTime } = require("./sockets");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
+
+connectRealTime(server);
 
 const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollectionCreated, handleAuctionCreated } = require("./listeners/exportListeners");
 const AuctionItem = require("./models/AuctionItem");

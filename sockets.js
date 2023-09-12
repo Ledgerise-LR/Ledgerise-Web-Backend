@@ -4,7 +4,7 @@ const { spawn } = require("child_process");
 
 
 const PATH_NAME = "/realtime";
-const PREDICT_DIR = "../LedgeriseLens-AI/main.py";
+const PREDICT_DIR = "../LedgeriseLens-AI/detect.py";
 
 const processImage = (imageBase64) => {
 
@@ -25,18 +25,17 @@ const processImage = (imageBase64) => {
 }
 
 const connectRealTime = (server) => {
-  const io = socketIo(server, {
-    path: PATH_NAME
-  });
+  const io = socketIo(server);
+  const realtimeNamespace = io.of('/realtime');
 
 
-  io.on("connection", (socket) => {
+  realtimeNamespace.on("connection", (socket) => {
     console.log(`Client connected to ${PATH_NAME}`);
 
 
-    socket.on("cameraFrame", (base64ImageData) => {
-      const processedImageData = processImage(base64ImageData);
-
+    socket.on("cameraFrame", async (base64ImageData) => {
+      console.log("hello")
+      const processedImageData = await processImage(base64ImageData);
       socket.emit("processedImage", processedImageData);
     })
 
