@@ -21,7 +21,7 @@ const processImage = (imageBase64) => {
 
     pythonProcess.stderr.on("data", (data) => {
       const processedImage = data.toString().trim();
-      reject(processedImage);
+      console.log(processedImage);
     })
   });
 }
