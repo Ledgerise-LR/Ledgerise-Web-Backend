@@ -157,6 +157,8 @@ server.listen(PORT, async () => {
 
   handleAuctionCreated();
 
+  // verifyBlockchain
+
   console.log("Server is listening on port", PORT);
 })
 

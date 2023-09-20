@@ -31,6 +31,14 @@ const visualVerificationSchema = new mongoose.Schema({
   isUploadedToBlockchain: {
     type: Boolean,
     default: false
+  },
+  location: {
+    type: String,
+    required: true
+  },
+  date: {
+    type: String,
+    required: true
   }
 });
 

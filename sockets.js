@@ -1,7 +1,7 @@
 
 const socketIo = require("socket.io");
 const { spawn } = require("child_process");
-
+const VisualVerification = require("./models/VisualVerification");
 
 const PATH_NAME = "/realtime";
 const PREDICT_DIR = "../LedgeriseLens-AI/detect.py";
@@ -26,7 +26,11 @@ const processImage = (imageBase64) => {
   });
 }
 
-let tempBase64Image = ""
+let tempBase64Image = "";
+
+let key = "";
+let location = {};
+let date = ""
 
 const connectRealTime = (server) => {
   const io = socketIo(server);
@@ -38,17 +42,52 @@ const connectRealTime = (server) => {
 
 
     socket.on("cameraFrame", async (base64ImageData) => {
-      if (base64ImageData != "done") {
+      if (base64ImageData != "done" && !base64ImageData.socketCallKey) {
+
+        if (location || date || key) {
+          location = "";
+          date = "";
+          key = "";
+        }
+
         tempBase64Image += base64ImageData;
+
       } else if (base64ImageData == "done") {
 
         const processedImageData = await processImage(tempBase64Image);
-        tempBase64Image = "";
+
         if (processedImageData != undefined) {
           const formattedProcessedImageData = processedImageData.replace(/'/g, '"')
-          console.log(formattedProcessedImageData);
           await socket.emit('processedImage', JSON.parse(formattedProcessedImageData));
+
+          const parsedProcessedImageData = JSON.parse(formattedProcessedImageData);
+
+          if (parsedProcessedImageData.found_status == "true" && parsedProcessedImageData.user_info != "") {
+
+            const userInfo = parsedProcessedImageData.user_info.split("-");
+
+            const eventData = {
+              nftAddress: userInfo[0],
+              tokenId: userInfo[1],
+              openseaTokenId: userInfo[2],
+              buyer: userInfo[3],
+              key: key,
+              location: location,
+              date: date,
+              isUploadedToBlockchain: false
+            }
+
+            const newEventData = new VisualVerification(eventData);
+            await newEventData.save()
+            socket.emit("upload", "complete");
+
+          }
+          tempBase64Image = "";
         }
+      } else if (base64ImageData.socketCallKey && base64ImageData.socketCallKey == "locationAndDate") {
+
+        location = base64ImageData.location;
+        date = base64ImageData.date;
       }
     })
 
