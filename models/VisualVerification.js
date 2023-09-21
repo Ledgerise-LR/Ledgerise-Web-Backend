@@ -39,6 +39,10 @@ const visualVerificationSchema = new mongoose.Schema({
   date: {
     type: String,
     required: true
+  },
+  isVerificationMinted: {
+    type: Boolean,
+    default: false
   }
 });
 

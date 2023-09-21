@@ -246,26 +246,25 @@ activeItemSchema.statics.sortNewest = function (body, callback) {
 
 activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
 
-  const decryptedBody = CryptoJS.AES.decrypt(body, process.env.AES_HASH_SECRET_KEY);
-  const decryptObject = JSON.parse(decryptedBody.toString(CryptoJS.enc.Utf8));
 
-  if (decryptObject.key == "stamp" || decryptObject.key == "shipped" || decryptObject.key == "delivered") {
+  if (body.key == "stamp" || body.key == "shipped" || body.key == "delivered") {
 
-    if (typeof decryptObject.location.longitude == "number" && typeof decryptObject.location.latitude == "number") {
-      ActiveItem.findOne({ tokenId: decryptObject.marketplaceTokenId }, async (err, activeItem) => {
+    if (typeof body.location.longitude == "number" && typeof body.location.latitude == "number") {
+      ActiveItem.findOne({ tokenId: body.marketplaceTokenId }, async (err, activeItem) => {
 
         if (err) return callback(err, null);
 
         // Save to centralized db
 
         const realItemHistoryData = {
-          key: decryptObject.key,
-          buyer: decryptObject.buyer,
-          openseaTokenId: decryptObject.openseaTokenId,
-          date: decryptObject.date,
+          key: body.key,
+          buyer: body.buyer,
+          visualVerificationTokenId: body.visualVerificationTokenId,
+          openseaTokenId: body.openseaTokenId,
+          date: body.date,
           location: {
-            latitude: decryptObject.location.latitude,
-            longitude: decryptObject.location.longitude
+            latitude: body.location.latitude,
+            longitude: body.location.longitude
           },
           transactionHash: ""
         }
@@ -275,13 +274,13 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
         const realItemHistoryBlockchainData = {
           nftAddress: activeItem.nftAddress,
           marketplaceTokenId: activeItem.tokenId,
-          key: decryptObject.key,
-          buyer: decryptObject.buyer,
-          openseaTokenId: decryptObject.openseaTokenId,
-          date: decryptObject.date,
+          key: body.key,
+          buyer: body.buyer,
+          openseaTokenId: body.openseaTokenId,
+          date: body.date,
           location: {
-            latitude: parseInt(decryptObject.location.latitude * 1000),
-            longitude: parseInt(decryptObject.location.longitude * 1000),
+            latitude: parseInt(body.location.latitude * 1000),
+            longitude: parseInt(body.location.longitude * 1000),
             decimals: 3
           },
           id: activeItem._id
