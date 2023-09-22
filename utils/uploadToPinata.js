@@ -6,20 +6,23 @@ const fs = require("fs");
 const pinataApiKey = process.env.PINATA_API_KEY;
 const pinataApiSecret = process.env.PINATA_API_SECRET;
 const pinata = new pinataSdk(pinataApiKey, pinataApiSecret);
-
-const fullImagesPath = path.resolve("./images");
+const stream = require("stream");
 
 async function storeImages(body) {
 
   console.log("Uploading to Pinata...");
 
+  const Readable = stream.Readable;
+  const base64Stream = new Readable();
+  base64Stream.push(Buffer.from(body.data, 'base64'));
+  base64Stream.push(null); // End the stream
+
+
   let responses = [];
-  const readableStreamForFile = fs.createReadStream(`${fullImagesPath}/${body.fileName}`);
-  // sending data as a stream because the file size is big
   try {
-    const response = await pinata.pinFileToIPFS(readableStreamForFile, {
+    const response = await pinata.pinFileToIPFS(base64Stream, {
       pinataMetadata: {
-        name: body.fileName,
+        name: body.name,
       }
     });
     responses.push(response);
@@ -27,12 +30,13 @@ async function storeImages(body) {
     console.log(e);
   }
 
-  return { responses, files };
+  console.log(responses)
+  return { responses };
 }
 
 async function storeUriMetadata(body) {
   try {
-    const response = await pinata.pinJSONToIPFS(body.metadata);
+    const response = await pinata.pinJSONToIPFS(body);
     return response;
   } catch (e) {
     console.log(e);

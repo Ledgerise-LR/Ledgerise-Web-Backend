@@ -1659,6 +1659,11 @@
   "resolved" "https://registry.npmjs.org/array-flatten/-/array-flatten-1.1.1.tgz"
   "version" "1.1.1"
 
+"asap@^2.0.0":
+  "integrity" "sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA=="
+  "resolved" "https://registry.npmjs.org/asap/-/asap-2.0.6.tgz"
+  "version" "2.0.6"
+
 "asn1@~0.2.3":
   "integrity" "sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ=="
   "resolved" "https://registry.npmjs.org/asn1/-/asn1-0.2.6.tgz"
@@ -2429,6 +2434,14 @@
   "resolved" "https://registry.npmjs.org/destroy/-/destroy-1.2.0.tgz"
   "version" "1.2.0"
 
+"dezalgo@^1.0.4":
+  "integrity" "sha512-rXSP0bf+5n0Qonsb+SVVfNfIsimO4HEtmnIpPHY8Q1UCzKlQrDMfdobr8nJOOsRgWCyMRqeSBQzmWUMq7zvVig=="
+  "resolved" "https://registry.npmjs.org/dezalgo/-/dezalgo-1.0.4.tgz"
+  "version" "1.0.4"
+  dependencies:
+    "asap" "^2.0.0"
+    "wrappy" "1"
+
 "diff@5.0.0":
   "integrity" "sha512-/VTCrvm5Z0JGty/BWHljh+BAiw3IK+2j87NGMu8Nwc/f48WoDAC395uomO9ZD117ZOBaHmkX1oyLvkVM/aIT3w=="
   "resolved" "https://registry.npmjs.org/diff/-/diff-5.0.0.tgz"
@@ -2959,6 +2972,15 @@
     "combined-stream" "^1.0.6"
     "mime-types" "^2.1.12"
 
+"formidable@^3.5.1":
+  "integrity" "sha512-WJWKelbRHN41m5dumb0/k8TeAx7Id/y3a+Z7QfhxP/htI9Js5zYaEDtG8uMgG0vM0lOlqnmjE99/kfpOYi/0Og=="
+  "resolved" "https://registry.npmjs.org/formidable/-/formidable-3.5.1.tgz"
+  "version" "3.5.1"
+  dependencies:
+    "dezalgo" "^1.0.4"
+    "hexoid" "^1.0.0"
+    "once" "^1.4.0"
+
 "forwarded@0.2.0":
   "integrity" "sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow=="
   "resolved" "https://registry.npmjs.org/forwarded/-/forwarded-0.2.0.tgz"
@@ -3257,6 +3279,11 @@
   "integrity" "sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw=="
   "resolved" "https://registry.npmjs.org/he/-/he-1.2.0.tgz"
   "version" "1.2.0"
+
+"hexoid@^1.0.0":
+  "integrity" "sha512-QFLV0taWQOZtvIRIAdBChesmogZrtuXvVWsFHZTk2SU+anspqZ2vMnoLg7IE1+Uk16N19APic1BuF8bC8c2m5g=="
+  "resolved" "https://registry.npmjs.org/hexoid/-/hexoid-1.0.0.tgz"
+  "version" "1.0.0"
 
 "hmac-drbg@^1.0.1":
   "integrity" "sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg=="

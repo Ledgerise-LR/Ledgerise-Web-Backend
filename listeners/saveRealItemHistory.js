@@ -27,7 +27,8 @@ module.exports = async (realItemHistoryData) => {
       realItemHistoryData.openseaTokenId,
       realItemHistoryData.location.latitude,
       realItemHistoryData.location.longitude,
-      realItemHistoryData.location.decimals
+      realItemHistoryData.location.decimals,
+      realItemHistoryData.visualVerificationTokenId
     );
 
     const saveItemToRealHistoryTxReceipt = await saveItemToRealHistoryTx.wait(1);

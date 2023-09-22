@@ -11,6 +11,10 @@ const { getIdFromParams } = require("./utils/getIdFromParams");
 const updateAttributes = require("./utils/updateAttributes");
 const bodyParser = require('body-parser');
 const { connectRealTime } = require("./sockets");
+const verifyBlockchain = require("./utils/verifyBlockchain");
+const formidable = require("formidable");
+const { storeImages, storeUriMetadata } = require("./utils/uploadToPinata");
+const TokenUri = require("./models/tokenUri");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
@@ -146,6 +150,77 @@ app.get("/get-all-active-items", (req, res) => {
   })
 })
 
+app.get("/admin/pinata/tokenuri", (req, res) => {
+  TokenUri.find({}, (err, tokenUris) => {
+    if (err) return res.status(200).json({ success: false, data: "bad_request" });
+    return res.status(200).json({ success: true, data: tokenUris });
+  })
+})
+
+app.post("/admin/pinata/upload", (req, res) => {
+  const form = new formidable.IncomingForm();
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error uploading file' });
+    }
+
+    const imageData = fields.image[0];
+    const imageName = fields.name[0];
+    const description = fields.description[0];
+    const attributesString = fields.attributes[0];
+
+    const metadataTemplate = {
+      "name": imageName,
+      "description": description,
+      "image": "",
+      "attributes": []
+    }
+
+    for (let i = 0; i < attributesString.split(",").length; i++) {
+      const array = attributesString.split(",");
+      const key = array[i].split(":")[0];
+      const value = parseInt(array[i].split(":")[1]);
+
+      const tempAttributeObject = {
+        trait_type: key,
+        value: value
+      };
+
+      metadataTemplate["attributes"].push(
+        tempAttributeObject
+      );
+    }
+
+    const tokenUris = [];
+
+    const body = {
+      name: imageName,
+      data: imageData.split(",")[1]
+    }
+
+    const { responses: imageUploadResponses } = await storeImages(body);
+
+    for (const imageUploadResponsesIndex in imageUploadResponses) {
+      // create metadata
+      // uploadMetadata
+      let tokenUriMetadata = { ...metadataTemplate };
+      tokenUriMetadata["image"] = `ipfs://${imageUploadResponses[imageUploadResponsesIndex].IpfsHash}`;
+      console.log(`Uploading ${tokenUriMetadata.name}`);
+
+      const metaDataUploadResponse = await storeUriMetadata(tokenUriMetadata);
+      tokenUris.push(`ipfs://${metaDataUploadResponse.IpfsHash}`);
+    }
+
+    TokenUri.addNewTokenUri({ name: imageName, tokenUri: tokenUris[0] }, (err, newTokenUri) => {
+      if (err) return res.status(200).json({ success: false, data: "bad_request" });
+      return res.status(200).json({ success: true, data: newTokenUri });
+    })
+
+  });
+
+})
 
 server.listen(PORT, async () => {
 
@@ -157,7 +232,7 @@ server.listen(PORT, async () => {
 
   handleAuctionCreated();
 
-  // verifyBlockchain
+  setInterval(verifyBlockchain, 10000);
 
   console.log("Server is listening on port", PORT);
 })

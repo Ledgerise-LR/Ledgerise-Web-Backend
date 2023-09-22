@@ -1,8 +1,8 @@
 
 const VisualVerification = require("../models/VisualVerification");
 const async = require("async");
-const { uploadImageToPinata } = require("../utils/uploadImageToPinata");
-const mintVerification = require("../utils/mintVerification");
+const { uploadImageToPinata } = require("./uploadImageToPinata");
+const mintVerification = require("./mintVerification");
 const saveRealItemHistory = require("../listeners/saveRealItemHistory");
 
 module.exports = (callback) => {
@@ -17,7 +17,12 @@ module.exports = (callback) => {
 
         const base64String = visualVerification.base64_image;
 
-        const ipfsHash = await uploadImageToPinata(base64String);
+        const body = {
+          name: `${visualVerification.buyer}_${visualVerification.openseaTokenId}_${visualVerification.key}`,
+          data: Buffer.from(base64String, "base64")
+        }
+
+        const ipfsHash = await uploadImageToPinata(body);
 
         visualVerification.base64_image = "";
         visualVerification.tokenUri = ipfsHash;
@@ -45,11 +50,12 @@ module.exports = (callback) => {
         }
 
         eventDataArray.push(realItemHistoryData);
+        next();
 
       }, (err) => {
         if (err) return callback(err);
 
-        return eventDataArray;
+        return callback(null, eventDataArray);
       });
     }
   })
