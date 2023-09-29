@@ -33,7 +33,7 @@ const visualVerificationSchema = new mongoose.Schema({
     default: false
   },
   location: {
-    type: String,
+    type: Object,
     required: true
   },
   date: {
@@ -47,12 +47,21 @@ const visualVerificationSchema = new mongoose.Schema({
 });
 
 visualVerificationSchema.statics.createVisualVerification = function (body, callback) {
-  const newVisualVerification = new visualVerification(body);
-  if (newVisualVerification) {
-    newVisualVerification.save();
-    return callback(null, newVisualVerification);
-  }
-  return callback("bad_request");
+  visualVerification.find({ buyer: body.buyer, openseaTokenId: body.openseaTokenId }, (err, visualVerifications) => {
+    if (err) return callback("error");
+    if (visualVerifications.length != 0) return callback("already_verified");
+
+    console.log(visualVerifications)
+
+    const newVisualVerification = new visualVerification(body);
+
+    if (newVisualVerification) {
+      newVisualVerification.save();
+      return callback(null, newVisualVerification);
+    }
+    return callback("bad_request");
+
+  })
 }
 
 const visualVerification = mongoose.model("visualverification", visualVerificationSchema);

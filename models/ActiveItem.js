@@ -85,6 +85,9 @@ const activeItemSchema = new mongoose.Schema({
       },
       transactionHash: {
         type: String
+      },
+      visualVerificationTokenId: {
+        type: Number
       }
     }
   ],

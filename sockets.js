@@ -21,7 +21,7 @@ const processImage = (imageBase64) => {
 
     pythonProcess.stderr.on("data", (data) => {
       const processedImage = data.toString().trim();
-      console.log(processedImage);
+      // console.log(processedImage)
     })
   });
 }
@@ -42,7 +42,7 @@ const connectRealTime = (server) => {
 
 
     socket.on("cameraFrame", async (base64ImageData) => {
-      if (base64ImageData != "done" && !base64ImageData.socketCallKey) {
+      if (base64ImageData != "done" && base64ImageData.socketCallKey != "locationAndDate") {
 
         if (location || date || key) {
           location = "";
@@ -53,16 +53,16 @@ const connectRealTime = (server) => {
         tempBase64Image += base64ImageData;
 
       } else if (base64ImageData == "done") {
-
         const processedImageData = await processImage(tempBase64Image);
 
         if (processedImageData != undefined) {
           const formattedProcessedImageData = processedImageData.replace(/'/g, '"')
+
           await socket.emit('processedImage', JSON.parse(formattedProcessedImageData));
 
           const parsedProcessedImageData = JSON.parse(formattedProcessedImageData);
 
-          if (parsedProcessedImageData.found_status == "true" && parsedProcessedImageData.user_info != "") {
+          if (parsedProcessedImageData.found_status == "true" && parsedProcessedImageData.user_info != "None") {
 
             const userInfo = parsedProcessedImageData.user_info.split("-");
 
@@ -70,6 +70,7 @@ const connectRealTime = (server) => {
               nftAddress: userInfo[0],
               tokenId: userInfo[1],
               openseaTokenId: userInfo[2],
+              base64_image: tempBase64Image,
               buyer: userInfo[3],
               key: key,
               location: location,
@@ -77,10 +78,15 @@ const connectRealTime = (server) => {
               isUploadedToBlockchain: false
             }
 
-            const newEventData = new VisualVerification(eventData);
-            await newEventData.save()
-            socket.emit("upload", "complete");
+            VisualVerification.createVisualVerification(eventData, (err, visualVerification) => {
 
+              if (err == "error") return socket.emit("upload", "error");
+
+              if (err == "already_verified") return socket.emit("upload", "already_verified");
+
+              if (!err && visualVerification) return socket.emit("upload", "complete");
+
+            })
           }
           tempBase64Image = "";
         }
@@ -88,6 +94,7 @@ const connectRealTime = (server) => {
 
         location = base64ImageData.location;
         date = base64ImageData.date;
+        key = base64ImageData.key;
       }
     })
 
