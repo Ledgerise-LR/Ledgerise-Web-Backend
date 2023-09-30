@@ -101,7 +101,11 @@ const activeItemSchema = new mongoose.Schema({
     default: Date.now
   },
 
-  attributes: []
+  attributes: [],
+
+  routeId: {
+    type: mongoose.Types.ObjectId,
+  }
 });
 
 function getFiltersByQueries(priceRange, editionRange) {

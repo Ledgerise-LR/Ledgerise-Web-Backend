@@ -232,7 +232,7 @@ server.listen(PORT, async () => {
 
   handleAuctionCreated();
 
-  setInterval(verifyBlockchain, 10000);
+  // setInterval(verifyBlockchain, 10000);
 
   console.log("Server is listening on port", PORT);
 })
