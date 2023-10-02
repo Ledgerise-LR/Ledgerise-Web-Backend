@@ -55,6 +55,8 @@ const connectRealTime = (server) => {
       } else if (base64ImageData == "done") {
         const processedImageData = await processImage(tempBase64Image);
 
+        console.log("hello")
+
         if (processedImageData != undefined) {
           const formattedProcessedImageData = processedImageData.replace(/'/g, '"')
 

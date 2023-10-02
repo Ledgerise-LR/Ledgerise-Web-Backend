@@ -12,7 +12,7 @@ const provider = new ethers.providers.JsonRpcProvider(process.env.URL);
 
 module.exports = async () => {
   const marketplace = new ethers.Contract(marketplaceAddress, abi, provider);
-  marketplace.on("ItemListed", (seller, nftAddress, tokenId, charityAddress, price, tokenUri, subcollectionId, availableEditions) => {
+  marketplace.on("ItemListed", (seller, nftAddress, tokenId, charityAddress, price, tokenUri, subcollectionId, availableEditions, route) => {
     const itemId = getIdFromParams(nftAddress, tokenId);
     const args = {
       itemId: itemId,
@@ -24,7 +24,8 @@ module.exports = async () => {
       price: price.toString(), // 18 decimals (Wei)
       tokenUri: tokenUri.toString(), // will be uploaded to pinata from react
       subcollectionId: subcollectionId.toString(),
-      availableEditions: availableEditions.toNumber()
+      availableEditions: availableEditions.toNumber(),
+      route: route
     }
 
     ActiveItem.findOne({ itemId: itemId }, (err, activeItemFetched) => {
@@ -35,9 +36,10 @@ module.exports = async () => {
         activeItemFetched.seller = seller;
         activeItemFetched.nftAddress = nftAddress;
         activeItemFetched.price = price;
-        activeItemFetched.tokenUri = tokenUri
-        activeItemFetched.subcollectionId = subcollectionId
-        activeItemFetched.availableEditions = availableEditions
+        activeItemFetched.tokenUri = tokenUri;
+        activeItemFetched.subcollectionId = subcollectionId;
+        activeItemFetched.availableEditions = availableEditions;
+        activeItemFetched.route = route;
         const currentDate = new Date();
         const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 

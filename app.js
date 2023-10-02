@@ -76,6 +76,9 @@ app.get("/get-random-featured-nft", (req, res) => {
     do {
       randomIndex = Math.floor(Math.random() * activeItems.length);
     } while (randomIndex == randomIndexPrev);
+    if (activeItems.length <= 0) {
+      return res.json({ data: {} });
+    }
     subcollection.findOne({ itemId: activeItems[randomIndex].subcollectionId }, (err, collection) => {
       randomIndexPrev = randomIndex;
       return res.json({

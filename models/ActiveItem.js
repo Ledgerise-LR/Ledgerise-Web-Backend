@@ -103,8 +103,8 @@ const activeItemSchema = new mongoose.Schema({
 
   attributes: [],
 
-  routeId: {
-    type: mongoose.Types.ObjectId,
+  route: {
+    type: Object,
   }
 });
 
