@@ -287,8 +287,8 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
           openseaTokenId: body.openseaTokenId,
           date: body.date,
           location: {
-            latitude: parseInt(body.location.latitude * 1000),
-            longitude: parseInt(body.location.longitude * 1000),
+            latitude: body.location.latitude,
+            longitude: body.location.longitude,
             decimals: 3
           },
           id: activeItem._id,

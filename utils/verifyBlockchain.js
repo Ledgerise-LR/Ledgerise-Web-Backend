@@ -12,12 +12,11 @@ module.exports = () => {
 
         ActiveItem.saveRealItemHistory(eventData, (err, activeItem) => {
           if (err) return console.error(err);
-          return next()
         })
+      }, (err) => {
+        if (err) return "bad_request";
+        if (!err) return "done";
       });
     }
-  }, (err) => {
-    if (err) return "bad_request";
-    if (!err) return "done";
   });
 }
