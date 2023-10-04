@@ -227,7 +227,6 @@ app.post("/admin/pinata/upload", (req, res) => {
 })
 
 app.get("/get-all-visual-verifications", (req, res) => {
-  console.log(req.query)
   visualVerification.find({}, (err, visualVerifications) => {
     if (err) return res.status(400).send(err);
     if (visualVerifications.length) return res.status(200).json({ data: visualVerifications });
