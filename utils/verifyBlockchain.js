@@ -1,17 +1,19 @@
 
 const getEventData = require("../utils/getEventData");
-const saveRealItemHistory = require("../listeners/saveRealItemHistory");
+const ActiveItem = require("../models/ActiveItem");
 const async = require("async");
 
 module.exports = () => {
-  const eventDataArray = getEventData((err, eventData) => {
-    if (err) return "bad_request";
-    if (eventData.length) {
+  getEventData((err, eventDataArray) => {
+    if (err) return console.error(err);
+    if (eventDataArray.length) {
       async.timesSeries(eventDataArray.length, async (i, next) => {
         const eventData = eventDataArray[i];
 
-        const txHash = await saveRealItemHistory(eventData);
-        return next()
+        ActiveItem.saveRealItemHistory(eventData, (err, activeItem) => {
+          if (err) return console.error(err);
+          return next()
+        })
       });
     }
   }, (err) => {

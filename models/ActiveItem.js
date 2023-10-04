@@ -6,6 +6,7 @@ const { ethers } = require("ethers");
 const CryptoJS = require("crypto-js");
 const async = require("async");
 const saveToBlockchain = require("../listeners/saveRealItemHistory");
+const visualVerification = require("./VisualVerification");
 require("dotenv").config();
 
 const activeItemSchema = new mongoose.Schema({
@@ -290,7 +291,8 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
             longitude: parseInt(body.location.longitude * 1000),
             decimals: 3
           },
-          id: activeItem._id
+          id: activeItem._id,
+          visualVerificationTokenId: body.visualVerificationTokenId
         }
 
         const transactionHash = await saveToBlockchain(realItemHistoryBlockchainData)
@@ -299,6 +301,10 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
         realItemHistoryData.transactionHash = transactionHash;
         activeItem.real_item_history.push(realItemHistoryData);
         activeItem.save();
+
+        visualVerification.findByIdAndUpdate(body.visualVerificationItemId, { isUploadedToBlockchain: true }, (err, res) => {
+          return callback(null, activeItem)
+        })
 
         return callback(null, activeItem)
       })

@@ -43,6 +43,9 @@ const visualVerificationSchema = new mongoose.Schema({
   isVerificationMinted: {
     type: Boolean,
     default: false
+  },
+  visualVerificationTokenId: {
+    type: Number
   }
 });
 

@@ -23,6 +23,7 @@ connectRealTime(server);
 
 const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollectionCreated, handleAuctionCreated } = require("./listeners/exportListeners");
 const AuctionItem = require("./models/AuctionItem");
+const visualVerification = require("./models/VisualVerification");
 
 const mongoUri = "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {
@@ -225,6 +226,14 @@ app.post("/admin/pinata/upload", (req, res) => {
 
 })
 
+app.get("/get-all-visual-verifications", (req, res) => {
+  console.log(req.query)
+  visualVerification.find({}, (err, visualVerifications) => {
+    if (err) return res.status(400).send(err);
+    if (visualVerifications.length) return res.status(200).json({ data: visualVerifications });
+  })
+})
+
 server.listen(PORT, async () => {
 
   updateAttributes();
@@ -235,7 +244,7 @@ server.listen(PORT, async () => {
 
   handleAuctionCreated();
 
-  // setInterval(verifyBlockchain, 10000);
+  verifyBlockchain();
 
   console.log("Server is listening on port", PORT);
 })

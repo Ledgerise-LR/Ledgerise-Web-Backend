@@ -18,6 +18,7 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key) => {
   const ledgeriseLens = new ethers.Contract(ledgeriseLensAddress, abi, signer);
 
   try {
+
     const mintVerificationTx = await ledgeriseLens.connect(signer).mintVisualNft(
       openseaTokenId,
       tokenUri,
@@ -26,7 +27,7 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key) => {
     );
 
     const mintVerificationTxReceipt = await mintVerificationTx.wait(1);
-    return mintVerificationTxReceipt.events[1].tokenCounter
+    return mintVerificationTxReceipt.events[1].args.tokenCounter
   } catch (error) {
     console.log(error);
   }

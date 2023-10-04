@@ -12,18 +12,24 @@ const pinata = new pinataSDK(pinataApiKey, pinataSecretApiKey);
 const uploadImageToPinata = async (body) => {
   try {
 
+    console.log("preparing data...");
+
     const Readable = stream.Readable;
     const base64Stream = new Readable();
     base64Stream.push(Buffer.from(body.data, 'base64'));
     base64Stream.push(null);
 
-    const { IpfsHash } = await pinata.pinFileToIPFS(imageBuffer, {
+
+    console.log("data prepared...")
+
+    const response = await pinata.pinFileToIPFS(base64Stream, {
       pinataMetadata: {
         name: body.name,
       }
     });
 
-    return IpfsHash;
+
+    return response.IpfsHash;
   } catch (error) {
     console.error('Error uploading image to Pinata:', error);
     return null;

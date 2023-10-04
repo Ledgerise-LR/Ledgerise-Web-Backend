@@ -4,14 +4,18 @@ const async = require("async");
 const { uploadImageToPinata } = require("./uploadImageToPinata");
 const mintVerification = require("./mintVerification");
 const saveRealItemHistory = require("../listeners/saveRealItemHistory");
+const networkMapping = require("../constants/networkMapping.json");
+
+const nftAddress = networkMapping["MainCollection"]["11155111"];
+
+const eventDataArray = [];
 
 module.exports = (callback) => {
 
-  const eventDataArray = [];
-
   VisualVerification.find({ isUploadedToBlockchain: false }, (err, visualVerifications) => {
     if (err) return callback(err);
-    if (visualVerifications) {
+    if (visualVerifications.length >= 1) {
+
       async.timesSeries(visualVerifications.length, async (i, next) => {
         const visualVerification = visualVerifications[i];
 
@@ -22,40 +26,50 @@ module.exports = (callback) => {
           data: Buffer.from(base64String, "base64")
         }
 
-        const ipfsHash = await uploadImageToPinata(body);
+        if (!visualVerification.visualVerificationTokenId) {
+          const ipfsHash = await uploadImageToPinata(body);
 
-        visualVerification.base64_image = "";
-        visualVerification.tokenUri = ipfsHash;
+          visualVerification.base64_image = "";
+          visualVerification.tokenUri = ipfsHash;
 
-        const visualVerificationTokenId = await mintVerification(
-          visualVerification.openseaTokenId,
-          visualVerification.tokenUri,
-          visualVerification.buyer,
-          visualVerification.key
-        );
+          const visualVerificationTokenId = await mintVerification(
+            visualVerification.openseaTokenId,
+            visualVerification.tokenUri,
+            visualVerification.buyer,
+            visualVerification.key
+          );
 
-        visualVerification.visualVerificationTokenId = visualVerificationTokenId;
+          visualVerification.visualVerificationTokenId = visualVerificationTokenId;
+
+        };
+
 
         const realItemHistoryData = {
+          visualVerificationItemId: visualVerification._id,
+          nftAddress: nftAddress,
+          marketplaceTokenId: visualVerification.tokenId,
           key: visualVerification.key,
           buyer: visualVerification.buyer,
-          visualVerificationTokenId: visualVerificationTokenId,
+          visualVerificationTokenId: visualVerification.visualVerificationTokenId,
           openseaTokenId: visualVerification.openseaTokenId,
           date: visualVerification.date,
           location: {
-            latitude: visualVerification.location.latitude,
-            longitude: visualVerification.location.longitude
+            latitude: parseInt((visualVerification.location.latitude) * 1000),
+            longitude: parseInt((visualVerification.location.longitude) * 1000),
+            decimals: 3
           },
           transactionHash: ""
         }
 
+        visualVerification.isVerificationMinted = true;
+
+
         eventDataArray.push(realItemHistoryData);
-        next();
+        visualVerification.save();
+        return next();
 
       }, (err) => {
-        if (err) return callback(err);
-
-        return callback(null, eventDataArray);
+        return callback(null, eventDataArray)
       });
     }
   })
