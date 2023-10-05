@@ -17,13 +17,6 @@ const signer = new ethers.Wallet(
 module.exports = async (realItemHistoryData) => {
   const marketplace = new ethers.Contract(marketplaceAddress, abi, signer);
 
-  console.log(marketplace.address)
-  console.log(signer.address)
-
-  console.log("hello")
-
-  console.log(realItemHistoryData)
-
   try {
 
     const saveItemToRealHistoryTx = await marketplace.connect(signer).saveRealItemHistory(
@@ -40,7 +33,6 @@ module.exports = async (realItemHistoryData) => {
     );
 
     const saveItemToRealHistoryTxReceipt = await saveItemToRealHistoryTx.wait(1);
-    console.log(saveItemToRealHistoryTxReceipt.transactionHash);
     return saveItemToRealHistoryTxReceipt.transactionHash
   } catch (error) {
     console.log(error);

@@ -32,15 +32,15 @@ module.exports = (callback) => {
           visualVerification.base64_image = "";
           visualVerification.tokenUri = ipfsHash;
 
-          const visualVerificationTokenId = await mintVerification(
+          const { tokenId, transactionHash } = await mintVerification(
             visualVerification.openseaTokenId,
             visualVerification.tokenUri,
             visualVerification.buyer,
             visualVerification.key
           );
 
-          visualVerification.visualVerificationTokenId = visualVerificationTokenId;
-
+          visualVerification.visualVerificationTokenId = tokenId;
+          visualVerification.transactionHash = transactionHash;
         };
 
 

@@ -46,6 +46,9 @@ const visualVerificationSchema = new mongoose.Schema({
   },
   visualVerificationTokenId: {
     type: Number
+  },
+  transactionHash: {
+    type: String
   }
 });
 

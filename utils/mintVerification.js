@@ -27,7 +27,10 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key) => {
     );
 
     const mintVerificationTxReceipt = await mintVerificationTx.wait(1);
-    return mintVerificationTxReceipt.events[1].args.tokenCounter
+    return {
+      tokenId: mintVerificationTxReceipt.events[1].args.tokenCounter,
+      txHash: mintVerificationTx.transactionHash
+    };
   } catch (error) {
     console.log(error);
   }
