@@ -15,6 +15,7 @@ const verifyBlockchain = require("./utils/verifyBlockchain");
 const formidable = require("formidable");
 const { storeImages, storeUriMetadata } = require("./utils/uploadToPinata");
 const TokenUri = require("./models/tokenUri");
+const async = require("async")
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
@@ -41,7 +42,39 @@ app.use((req, res, next) => {
 
 app.get("/get-asset", (req, res) => {
   ActiveItem.findOne({ tokenId: req.query.tokenId }, (err, activeItem) => {
-    res.status(200).json({ activeItem });
+    const groupedObjects = {};
+
+    async.timesSeries(activeItem.real_item_history.length, (i, next) => {
+      const obj = activeItem.real_item_history[i];
+
+      const tokenId = obj.openseaTokenId;
+      if (!groupedObjects[tokenId]) {
+        groupedObjects[tokenId] = [];
+      }
+
+      groupedObjects[tokenId].push(obj);
+      next()
+    }, async (err) => {
+
+      const groupedArray = Object.values(groupedObjects);
+
+      return res.status(200).json({
+        activeItem: {
+          seller: activeItem.seller,
+          nftAddress: activeItem.nftAddress,
+          tokenId: activeItem.tokenId,
+          charityAddress: activeItem.charityAddress,
+          tokenUri: activeItem.tokenUri,
+          price: activeItem.price,
+          availableEditions: activeItem.availableEditions,
+          subcollectionId: activeItem.subcollectionId,
+          history: activeItem.history,
+          attributes: activeItem.attributes,
+          real_item_history: groupedArray,
+          route: activeItem.route
+        }
+      });
+    })
   })
 })
 
@@ -229,6 +262,7 @@ app.post("/admin/pinata/upload", (req, res) => {
 app.get("/get-all-visual-verifications", (req, res) => {
   visualVerification.find({}, (err, visualVerifications) => {
     if (err) return res.status(400).send(err);
+
     if (visualVerifications.length) return res.status(200).json({ data: visualVerifications });
   })
 })
