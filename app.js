@@ -20,8 +20,6 @@ const async = require("async")
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
 
-connectRealTime(server);
-
 const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollectionCreated, handleAuctionCreated } = require("./listeners/exportListeners");
 const AuctionItem = require("./models/AuctionItem");
 const visualVerification = require("./models/VisualVerification");
@@ -278,6 +276,8 @@ server.listen(PORT, async () => {
   handleAuctionCreated();
 
   verifyBlockchain();
+
+  connectRealTime(server);
 
   console.log("Server is listening on port", PORT);
 })

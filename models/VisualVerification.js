@@ -55,9 +55,9 @@ const visualVerificationSchema = new mongoose.Schema({
 visualVerificationSchema.statics.createVisualVerification = function (body, callback) {
   visualVerification.find({ buyer: body.buyer, openseaTokenId: body.openseaTokenId, key: body.key }, (err, visualVerifications) => {
     if (err) return callback("error");
-    if (visualVerifications.length != 0) return callback("already_verified");
+    if (visualVerifications.length > 0) return callback("already_verified");
 
-    console.log(visualVerifications)
+    if (!body.key || !body.date || !body.tokenId) return callback("incompatible_data");
 
     const newVisualVerification = new visualVerification(body);
 
