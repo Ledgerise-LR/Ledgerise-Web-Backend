@@ -17,6 +17,7 @@ const { storeImages, storeUriMetadata } = require("./utils/uploadToPinata");
 const TokenUri = require("./models/tokenUri");
 const async = require("async");
 const networkMapping = require("./constants/networkMapping.json");
+const CryptoJs = require("crypto-js");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
@@ -30,6 +31,7 @@ const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID]
 const provider = new ethers.providers.JsonRpcProvider(process.env.URL);
 const marketplace = new ethers.Contract(marketplaceAddress, abi, provider);
 const donateFiatToken = process.env.DONATE_FIAT_TOKEN;
+const donateFiatTokenAesHashKey = process.env.DONATE_FIAT_TOKEN_HASH_SECRET_KEY;
 
 const mongoUri = "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {
@@ -370,8 +372,10 @@ app.get("/get-all-visual-verifications", (req, res) => {
 
 app.post("/donate/fiat/create", async (req, res) => {
 
+  req.body.donateFiatToken = CryptoJs.AES.decrypt(req.body.donateFiatToken, donateFiatTokenAesHashKey);
+
   if (req.body.donateFiatToken == donateFiatToken) {
-    if (typeof req.body.tokenId == "number" && req.body.charityAddress.split("x")[0] == "0") {
+    if (typeof req.body.tokenId == "number" && req.body.charityAddress.split("x")[0] == "0" && req.body.fiatAmount > 0) {
       const buyWithFiatTx = await marketplace.buyItemWithFiatCurrency(
         nftAddress,
         req.body.tokenId,
