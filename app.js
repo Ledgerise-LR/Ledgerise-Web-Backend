@@ -15,7 +15,8 @@ const verifyBlockchain = require("./utils/verifyBlockchain");
 const formidable = require("formidable");
 const { storeImages, storeUriMetadata } = require("./utils/uploadToPinata");
 const TokenUri = require("./models/tokenUri");
-const async = require("async")
+const async = require("async");
+const networkMapping = require("./constants/networkMapping.json");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
@@ -23,6 +24,12 @@ const PORT = process.env.PORT || 4000;
 const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollectionCreated, handleAuctionCreated } = require("./listeners/exportListeners");
 const AuctionItem = require("./models/AuctionItem");
 const visualVerification = require("./models/VisualVerification");
+
+const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
+const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
+const provider = new ethers.providers.JsonRpcProvider(process.env.URL);
+const marketplace = new ethers.Contract(marketplaceAddress, abi, provider);
+const donateFiatToken = process.env.DONATE_FIAT_TOKEN;
 
 const mongoUri = "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {
@@ -37,6 +44,17 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
+
+function checkForBuyerPresence(buyerAddress, eachCollaboratorSet) {
+  let flag = 1;
+  eachCollaboratorSet.forEach(eachCollaborator => {
+    if (eachCollaborator.split("_")[1] == buyerAddress) {
+      flag = 0;
+    }
+  })
+
+  return flag;
+}
 
 app.get("/get-asset", (req, res) => {
   ActiveItem.findOne({ tokenId: req.query.tokenId }, (err, activeItem) => {
@@ -56,22 +74,105 @@ app.get("/get-asset", (req, res) => {
 
       const groupedArray = Object.values(groupedObjects);
 
-      return res.status(200).json({
-        activeItem: {
-          seller: activeItem.seller,
-          nftAddress: activeItem.nftAddress,
-          tokenId: activeItem.tokenId,
-          charityAddress: activeItem.charityAddress,
-          tokenUri: activeItem.tokenUri,
-          price: activeItem.price,
-          availableEditions: activeItem.availableEditions,
-          subcollectionId: activeItem.subcollectionId,
-          history: activeItem.history,
-          attributes: activeItem.attributes,
-          real_item_history: groupedArray,
-          route: activeItem.route
+      TokenUri.findOne({ tokenUri: activeItem.tokenUri }, (err, tokenUriObject) => {
+        const tokenName = tokenUriObject.name.trim();
+        const tokenNameArray = tokenName.split("/");
+
+
+        if (parseInt(tokenNameArray[0].split("(")[1]) == 1 &&
+          typeof parseInt(tokenNameArray[1].split(")")[0]) == "number") {
+
+          const numberOfCollaborators = parseInt(tokenNameArray[1].split(")")[0]);
+          const collaboratorClustersSet = [];
+          const priorityList = [];
+          let eachCollaboratorSet = [];
+          async.timesSeries(activeItem.history.length, (j, next) => {
+
+            if (eachCollaboratorSet.length == numberOfCollaborators) {
+              collaboratorClustersSet.push(eachCollaboratorSet);
+              eachCollaboratorSet = [];
+            }
+
+            if (activeItem.history[j].key == "buy") {
+
+              let flag = checkForBuyerPresence(activeItem.history[j].buyer, eachCollaboratorSet);
+
+              if (flag) {
+                eachCollaboratorSet.push(`${activeItem.history[j].openseaTokenId}_${activeItem.history[j].buyer}`);
+              }
+              else if (!flag) priorityList.push(`${activeItem.history[j].openseaTokenId}_${activeItem.history[j].buyer}`);
+            }
+
+            next();
+          }, (err) => {
+            collaboratorClustersSet.push(eachCollaboratorSet);
+
+            async.timesSeries(collaboratorClustersSet.length, (k, nextK) => {
+              const eachCollaboratorSet = collaboratorClustersSet[k];
+              if (eachCollaboratorSet.length == numberOfCollaborators) {
+                return nextK();
+              } else {
+                async.timesSeries(priorityList.length, (l, nextL) => {
+                  let flagL = checkForBuyerPresence(priorityList[l], eachCollaboratorSet);
+                  if (eachCollaboratorSet.length == numberOfCollaborators) return nextK();
+                  else if (flagL) {
+                    eachCollaboratorSet.push(priorityList[l]);
+                    priorityList.splice(l, 1);
+                    return nextL();
+                  } else {
+                    return nextL();
+                  }
+                })
+              }
+            }, (err) => {
+              // console.log(priorityList.length)
+              if (priorityList.length) {
+                async.timesSeries(priorityList.length, (m, nextM) => {
+                  const arr = [priorityList[m]];
+                  collaboratorClustersSet.push(arr);
+                  nextM();
+                }, (err) => {
+                  return res.status(200).json({
+                    activeItem: {
+                      seller: activeItem.seller,
+                      nftAddress: activeItem.nftAddress,
+                      tokenId: activeItem.tokenId,
+                      charityAddress: activeItem.charityAddress,
+                      tokenUri: activeItem.tokenUri,
+                      price: activeItem.price,
+                      availableEditions: activeItem.availableEditions,
+                      subcollectionId: activeItem.subcollectionId,
+                      history: activeItem.history,
+                      attributes: activeItem.attributes,
+                      real_item_history: groupedArray,
+                      route: activeItem.route,
+                      collaborators: collaboratorClustersSet
+                    }
+                  });
+                })
+              }
+            })
+          })
+        } else {
+          return res.status(200).json({
+            activeItem: {
+              seller: activeItem.seller,
+              nftAddress: activeItem.nftAddress,
+              tokenId: activeItem.tokenId,
+              charityAddress: activeItem.charityAddress,
+              tokenUri: activeItem.tokenUri,
+              price: activeItem.price,
+              availableEditions: activeItem.availableEditions,
+              subcollectionId: activeItem.subcollectionId,
+              history: activeItem.history,
+              attributes: activeItem.attributes,
+              real_item_history: groupedArray,
+              route: activeItem.route,
+              collaborators: []
+            }
+          });
         }
-      });
+      })
     })
   })
 })
@@ -265,6 +366,34 @@ app.get("/get-all-visual-verifications", (req, res) => {
     if (visualVerifications.length) return res.status(200).json({ data: visualVerifications });
   })
 })
+
+
+app.post("/donate/fiat/create", async (req, res) => {
+
+  if (req.body.donateFiatToken == donateFiatToken) {
+    if (typeof req.body.tokenId == "number" && req.body.charityAddress.split("x")[0] == "0") {
+      const buyWithFiatTx = await marketplace.buyItemWithFiatCurrency(
+        nftAddress,
+        req.body.tokenId,
+        req.body.charityAddress,
+        req.body.tokenUri,
+        req.body.priceFeed,
+        req.body.fiatAmount,
+        `0x${req.body.buyerTelephoneNumber}`
+      );
+
+      const buyWithFiatTxReceipt = await buyWithFiatTx.wait(1);
+
+      const eventRes = buyWithFiatTxReceipt.events[2].args;
+
+      if (eventRes) return res.status(200).json({ success: true, data: eventRes });
+      return res.status(400).json({ err: "item_not_emitted" });
+    }
+  } else {
+    res.status(400).json({ err: "bad_request" });
+  }
+})
+
 
 server.listen(PORT, async () => {
 

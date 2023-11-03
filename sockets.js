@@ -7,12 +7,22 @@ const PATH_NAME = "/realtime";
 const PREDICT_DIR = "../LedgeriseLens-AI/detect.py";
 const TEMP_IMAGE_DIR = "../Nft-Fundraising-nodejs-backend/temp_image.png"
 
+const printImageChunks = async (imageBase64, pythonProcess) => {
+  if (imageBase64.length <= 0) return setIsProcessing(false);
+  const chunkSize = 64;
+  for (let offset = 0; offset < imageBase64.length; offset += chunkSize) {
+    const chunk = await imageBase64.substring(offset, offset + chunkSize);
+    pythonProcess.stdin.write(chunk);
+  }
+
+  pythonProcess.stdin.end();
+}
+
 const processImage = (imageBase64) => {
   return new Promise((resolve, reject) => {
     const pythonProcess = spawn("python3", [PREDICT_DIR]);
 
-    pythonProcess.stdin.write(imageBase64);
-    pythonProcess.stdin.end();
+    printImageChunks(imageBase64, pythonProcess);
 
     pythonProcess.stdout.on("data", (data) => {
       const processedImage = data.toString().trim();
@@ -71,30 +81,36 @@ const connectRealTime = (server) => {
 
           if (parsedProcessedImageData.found_status == "true") {
 
-            const userInfo = user_info.split("-");
+            user_info = JSON.parse(user_info);
 
-            const eventData = {
-              nftAddress: userInfo[0],
-              tokenId: userInfo[1],
-              openseaTokenId: userInfo[2],
-              base64_image: tempBase64Image,
-              buyer: userInfo[3],
-              key: key,
-              location: location,
-              date: date,
-              isUploadedToBlockchain: false
-            }
+            async.timesSeries(user_info, (i, next) => {
 
-            VisualVerification.createVisualVerification(eventData, (err, visualVerification) => {
+              const userInfo = user_info[i].split("-");
 
-              if (err == "error") return socket.emit("upload", "error");
+              const eventData = {
+                nftAddress: userInfo[0],
+                tokenId: userInfo[1],
+                openseaTokenId: userInfo[2],
+                base64_image: tempBase64Image,
+                buyer: userInfo[3],
+                key: key,
+                location: location,
+                date: date,
+                isUploadedToBlockchain: false
+              }
 
-              if (err == "already_verified") return socket.emit("upload", "already_verified");
+              VisualVerification.createVisualVerification(eventData, async (err, visualVerification) => {
 
-              if (err == "incompatible_data") return socket.emit("upload", "incompatible_data");
+                if (err == "error") await socket.emit("upload", "error");
 
-              if (!err && visualVerification) return socket.emit("upload", "complete");
+                if (err == "already_verified") await socket.emit("upload", "already_verified");
 
+                if (err == "incompatible_data") await socket.emit("upload", "incompatible_data");
+
+                if (!err && visualVerification) await socket.emit("upload", `complete`);
+
+                return next();
+              })
             })
           }
           tempBase64Image = "";
