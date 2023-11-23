@@ -2,6 +2,7 @@
 const socketIo = require("socket.io");
 const { spawn } = require("child_process");
 const VisualVerification = require("./models/VisualVerification");
+const async = require("async");
 
 const PATH_NAME = "/realtime";
 const PREDICT_DIR = "../LedgeriseLens-AI/detect.py";
@@ -81,9 +82,13 @@ const connectRealTime = (server) => {
 
           if (parsedProcessedImageData.found_status == "true") {
 
-            user_info = JSON.parse(user_info);
+            const arr = []
+            arr.push(user_info)
+            user_info = arr;
 
-            async.timesSeries(user_info, (i, next) => {
+            user_info = JSON.parse(JSON.stringify(user_info)); // delete later for LR COLLAB
+
+            async.timesSeries(user_info.length, (i, next) => {
 
               const userInfo = user_info[i].split("-");
 

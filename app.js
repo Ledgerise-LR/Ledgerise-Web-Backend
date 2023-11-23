@@ -25,6 +25,7 @@ const PORT = process.env.PORT || 4000;
 const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollectionCreated, handleAuctionCreated } = require("./listeners/exportListeners");
 const AuctionItem = require("./models/AuctionItem");
 const visualVerification = require("./models/VisualVerification");
+const Report = require("./models/Report");
 
 const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
 const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
@@ -370,9 +371,18 @@ app.get("/get-all-visual-verifications", (req, res) => {
 })
 
 
-app.post("/donate/fiat/create", async (req, res) => {
+app.post("/donate/payment/usd", async (req, res) => {
 
   req.body.donateFiatToken = CryptoJs.AES.decrypt(req.body.donateFiatToken, donateFiatTokenAesHashKey);
+  req.body.cardOwner = CryptoJs.AES.decrypt(req.body.cardOwner, donateFiatTokenAesHashKey);
+  req.body.PAN = CryptoJs.AES.decrypt(req.body.PAN, donateFiatTokenAesHashKey);
+  req.body.expiryMonth = CryptoJs.AES.decrypt(req.body.expiryMonth, donateFiatTokenAesHashKey);
+  req.body.expiryYear = CryptoJs.AES.decrypt(req.body.expiryYear, donateFiatTokenAesHashKey);
+  req.body.CVV = CryptoJs.AES.decrypt(req.body.CVV, donateFiatTokenAesHashKey);
+
+  // send transaction through papara
+
+  // when success run below
 
   if (req.body.donateFiatToken == donateFiatToken) {
     if (typeof req.body.tokenId == "number" && req.body.charityAddress.split("x")[0] == "0" && req.body.fiatAmount > 0) {
@@ -399,9 +409,17 @@ app.post("/donate/fiat/create", async (req, res) => {
 })
 
 
+app.get("/reports/get-past", (req, res) => {
+  Report.find({ reporter: req.query.reporter }, (err, reports) => {
+    if (err) return res.status(400).json({ err: "bad_request" });
+    return res.status(200).json({ success: true, data: reports });
+  })
+})
+
+
 server.listen(PORT, async () => {
 
-  updateAttributes();
+  // updateAttributes();
   handleItemBought();
   handleItemCanceled();
   handleItemListed();
