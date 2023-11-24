@@ -6,7 +6,7 @@ const async = require("async");
 
 const PATH_NAME = "/realtime";
 const PREDICT_DIR = "../LedgeriseLens-AI/detect.py";
-const TEMP_IMAGE_DIR = "../Nft-Fundraising-nodejs-backend/temp_image.png"
+// const TEMP_IMAGE_DIR = "../Nft-Fundraising-nodejs-backend/temp_image.png"
 
 const printImageChunks = async (imageBase64, pythonProcess) => {
   if (imageBase64.length <= 0) return setIsProcessing(false);

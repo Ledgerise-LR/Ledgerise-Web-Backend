@@ -11,6 +11,7 @@ const { getIdFromParams } = require("./utils/getIdFromParams");
 const updateAttributes = require("./utils/updateAttributes");
 const bodyParser = require('body-parser');
 const { connectRealTime } = require("./sockets");
+const { receiveImage } = require("./privacy");
 const verifyBlockchain = require("./utils/verifyBlockchain");
 const formidable = require("formidable");
 const { storeImages, storeUriMetadata } = require("./utils/uploadToPinata");
@@ -430,6 +431,7 @@ server.listen(PORT, async () => {
   verifyBlockchain();
 
   connectRealTime(server);
+  receiveImage(app);
 
   console.log("Server is listening on port", PORT);
 })
