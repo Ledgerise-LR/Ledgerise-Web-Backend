@@ -296,7 +296,6 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
         }
 
         const transactionHash = await saveToBlockchain(realItemHistoryBlockchainData)
-        console.log(transactionHash)
 
         realItemHistoryData.transactionHash = transactionHash;
         activeItem.real_item_history.push(realItemHistoryData);

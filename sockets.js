@@ -67,6 +67,7 @@ const connectRealTime = (server) => {
           date = "";
           key = "";
           user_info = "";
+          tempBase64Image = "";
         }
         tempBase64Image += base64ImageData;
 
@@ -82,12 +83,8 @@ const connectRealTime = (server) => {
 
           if (parsedProcessedImageData.found_status == "true") {
 
-            const arr = []
-            arr.push(user_info)
-            user_info = arr;
-
-            user_info = JSON.parse(JSON.stringify(user_info)); // delete later for LR COLLAB
-
+            user_info = JSON.parse(user_info); // delete later for LR COLLAB
+            console.log(user_info)
             async.timesSeries(user_info.length, (i, next) => {
 
               const userInfo = user_info[i].split("-");
@@ -106,19 +103,18 @@ const connectRealTime = (server) => {
 
               VisualVerification.createVisualVerification(eventData, async (err, visualVerification) => {
 
-                if (err == "error") await socket.emit("upload", "error");
+                if (err == "error") await socket.emit("upload", `error-${i}`);
 
-                if (err == "already_verified") await socket.emit("upload", "already_verified");
+                if (err == "already_verified") await socket.emit("upload", `already_verified-${i}`);
 
-                if (err == "incompatible_data") await socket.emit("upload", "incompatible_data");
+                if (err == "incompatible_data") await socket.emit("upload", `incompatible_data-${i}`);
 
-                if (!err && visualVerification) await socket.emit("upload", `complete`);
+                if (!err && visualVerification) await socket.emit("upload", `complete-${i}`);
 
                 return next();
               })
             })
           }
-          tempBase64Image = "";
         }
       } else if (base64ImageData.socketCallKey && base64ImageData.socketCallKey == "locationAndDate") {
 

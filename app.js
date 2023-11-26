@@ -18,7 +18,7 @@ const { storeImages, storeUriMetadata } = require("./utils/uploadToPinata");
 const TokenUri = require("./models/tokenUri");
 const async = require("async");
 const networkMapping = require("./constants/networkMapping.json");
-const CryptoJs = require("crypto-js");
+const { AES, enc } = require("crypto-js");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
@@ -27,6 +27,7 @@ const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollect
 const AuctionItem = require("./models/AuctionItem");
 const visualVerification = require("./models/VisualVerification");
 const Report = require("./models/Report");
+const Donor = require("./models/Donor");
 
 const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
 const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
@@ -34,6 +35,7 @@ const provider = new ethers.providers.JsonRpcProvider(process.env.URL);
 const marketplace = new ethers.Contract(marketplaceAddress, abi, provider);
 const donateFiatToken = process.env.DONATE_FIAT_TOKEN;
 const donateFiatTokenAesHashKey = process.env.DONATE_FIAT_TOKEN_HASH_SECRET_KEY;
+const authenticationKey = process.env.AUTHENTICATION_KEY;
 
 const mongoUri = "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {
@@ -374,12 +376,12 @@ app.get("/get-all-visual-verifications", (req, res) => {
 
 app.post("/donate/payment/usd", async (req, res) => {
 
-  req.body.donateFiatToken = CryptoJs.AES.decrypt(req.body.donateFiatToken, donateFiatTokenAesHashKey);
-  req.body.cardOwner = CryptoJs.AES.decrypt(req.body.cardOwner, donateFiatTokenAesHashKey);
-  req.body.PAN = CryptoJs.AES.decrypt(req.body.PAN, donateFiatTokenAesHashKey);
-  req.body.expiryMonth = CryptoJs.AES.decrypt(req.body.expiryMonth, donateFiatTokenAesHashKey);
-  req.body.expiryYear = CryptoJs.AES.decrypt(req.body.expiryYear, donateFiatTokenAesHashKey);
-  req.body.CVV = CryptoJs.AES.decrypt(req.body.CVV, donateFiatTokenAesHashKey);
+  req.body.donateFiatToken = AES.decrypt(req.body.donateFiatToken, donateFiatTokenAesHashKey);
+  req.body.cardOwner = AES.decrypt(req.body.cardOwner, donateFiatTokenAesHashKey);
+  req.body.PAN = AES.decrypt(req.body.PAN, donateFiatTokenAesHashKey);
+  req.body.expiryMonth = AES.decrypt(req.body.expiryMonth, donateFiatTokenAesHashKey);
+  req.body.expiryYear = AES.decrypt(req.body.expiryYear, donateFiatTokenAesHashKey);
+  req.body.CVV = AES.decrypt(req.body.CVV, donateFiatTokenAesHashKey);
 
   // send transaction through papara
 
@@ -414,6 +416,30 @@ app.get("/reports/get-past", (req, res) => {
   Report.find({ reporter: req.query.reporter }, (err, reports) => {
     if (err) return res.status(400).json({ err: "bad_request" });
     return res.status(200).json({ success: true, data: reports });
+  })
+})
+
+
+app.post("/auth/login", (req, res) => {
+  Donor.loginDonor(req.body, (err, donor) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.status(200).json({ success: true, donor: donor });
+  })
+})
+
+app.post("/auth/authenticate", (req, res) => {
+  const id = req.body._id
+
+  Donor.findById(id, (err, donor) => {
+    if (err || !donor) return res.json({ success: false, err: "authentication_failed" });
+    if (!err || donor) return res.status(200).json({ success: true, username: donor.email.split("@")[0] });
+  })
+})
+
+app.post("/auth/register", (req, res) => {
+  Donor.createNewDonor(req.body, (err, donor) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.status(200).json({ success: true, donor: donor });
   })
 })
 
