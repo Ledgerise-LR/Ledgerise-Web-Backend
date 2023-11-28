@@ -84,7 +84,6 @@ const connectRealTime = (server) => {
           if (parsedProcessedImageData.found_status == "true") {
 
             user_info = JSON.parse(user_info); // delete later for LR COLLAB
-            console.log(user_info)
             async.timesSeries(user_info.length, (i, next) => {
 
               const userInfo = user_info[i].split("-");

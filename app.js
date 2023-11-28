@@ -119,7 +119,7 @@ app.get("/get-asset", (req, res) => {
                 return nextK();
               } else {
                 async.timesSeries(priorityList.length, (l, nextL) => {
-                  let flagL = checkForBuyerPresence(priorityList[l], eachCollaboratorSet);
+                  let flagL = checkForBuyerPresence(priorityList[l].split("_")[1], eachCollaboratorSet);
                   if (eachCollaboratorSet.length == numberOfCollaborators) return nextK();
                   else if (flagL) {
                     eachCollaboratorSet.push(priorityList[l]);
@@ -128,10 +128,13 @@ app.get("/get-asset", (req, res) => {
                   } else {
                     return nextL();
                   }
+                }, (err) => {
+                  nextK();
                 })
               }
             }, (err) => {
-              // console.log(priorityList.length)
+              // console.log(collaboratorClustersSet);
+              // console.log(priorityList)
               if (priorityList.length) {
                 async.timesSeries(priorityList.length, (m, nextM) => {
                   const arr = [priorityList[m]];
@@ -156,6 +159,24 @@ app.get("/get-asset", (req, res) => {
                     }
                   });
                 })
+              } else {
+                return res.status(200).json({
+                  activeItem: {
+                    seller: activeItem.seller,
+                    nftAddress: activeItem.nftAddress,
+                    tokenId: activeItem.tokenId,
+                    charityAddress: activeItem.charityAddress,
+                    tokenUri: activeItem.tokenUri,
+                    price: activeItem.price,
+                    availableEditions: activeItem.availableEditions,
+                    subcollectionId: activeItem.subcollectionId,
+                    history: activeItem.history,
+                    attributes: activeItem.attributes,
+                    real_item_history: groupedArray,
+                    route: activeItem.route,
+                    collaborators: collaboratorClustersSet
+                  }
+                });
               }
             })
           })
