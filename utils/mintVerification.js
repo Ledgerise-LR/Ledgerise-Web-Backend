@@ -6,6 +6,12 @@ const abi = require("../constants/ledgeriseLensAbi.json");
 const { getIdFromParams } = require("../utils/getIdFromParams");
 require("dotenv").config();
 
+const EVENT_DATA = {
+  "stamp": 0,
+  "shipped": 1,
+  "delivered": 2
+};
+
 const ledgeriseLensAddress = networkMapping["LedgeriseLens"][process.env.ACTIVE_CHAIN_ID];
 
 const provider = new ethers.providers.WebSocketProvider(process.env.URL);
@@ -23,7 +29,7 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key) => {
       openseaTokenId,
       tokenUri,
       buyer,
-      key
+      EVENT_DATA[key]
     );
 
     const mintVerificationTxReceipt = await mintVerificationTx.wait(1);
