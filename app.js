@@ -28,6 +28,7 @@ const AuctionItem = require("./models/AuctionItem");
 const visualVerification = require("./models/VisualVerification");
 const Report = require("./models/Report");
 const Donor = require("./models/Donor");
+const Company = require("./models/Company");
 
 const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
 const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
@@ -461,6 +462,35 @@ app.post("/auth/register", (req, res) => {
   Donor.createNewDonor(req.body, (err, donor) => {
     if (err) return res.json({ success: false, err: err });
     return res.status(200).json({ success: true, donor: donor });
+  })
+})
+
+app.post("/auth/login-verifier", (req, res) => {
+  Company.loginVerifier(req.body, (err, company) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.status(200).json({ success: true, company: company });
+  })
+})
+
+
+app.post("/auth/authenticate-verifier", (req, res) => {
+  Company.authenticateVerifier(req.body, (err, company) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.status(200).json({ success: true, company: company });
+  })
+})
+
+app.post("/auth/company/create", (req, res) => {
+  Company.createNewCompany(req.body, (err, company) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.status(201).json({ success: true, company: company });
+  })
+})
+
+app.get("/company/get-all", (req, res) => {
+  Company.find({}, (err, companyArray) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.status(201).json({ success: true, companies: companyArray });
   })
 })
 
