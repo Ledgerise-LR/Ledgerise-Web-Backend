@@ -20,6 +20,8 @@ const async = require("async");
 const networkMapping = require("./constants/networkMapping.json");
 const { AES, enc } = require("crypto-js");
 
+const session = require("express-session");
+
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
 
@@ -44,6 +46,19 @@ mongoose.connect(mongoUri, {
   useUnifiedTopology: true,
 });
 
+app.use(express.json());
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}));
+
+app.use(bodyParser.urlencoded({
+  extended: true,
+}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
@@ -468,16 +483,21 @@ app.post("/auth/register", (req, res) => {
 app.post("/auth/login-verifier", (req, res) => {
   Company.loginVerifier(req.body, (err, company) => {
     if (err) return res.json({ success: false, err: err });
+    req.session.company = company;
     return res.status(200).json({ success: true, company: company });
   })
 })
 
 
-app.post("/auth/authenticate-verifier", (req, res) => {
-  Company.authenticateVerifier(req.body, (err, company) => {
-    if (err) return res.json({ success: false, err: err });
-    return res.status(200).json({ success: true, company: company });
-  })
+app.get("/auth/authenticate-verifier", (req, res) => {
+  if (req.session.company != null || req.session.company != undefined) {
+    Company.authenticateVerifier(req.session.company, (err, company) => {
+      if (err || !company) return res.json({ success: false, err: err });
+      return res.status(200).json({ success: true, company: company });
+    })
+  }
+  else if (req.session.company == undefined) return res.json({ success: false, err: "auth_error" })
+
 })
 
 app.post("/auth/company/create", (req, res) => {
@@ -490,7 +510,15 @@ app.post("/auth/company/create", (req, res) => {
 app.get("/company/get-all", (req, res) => {
   Company.find({}, (err, companyArray) => {
     if (err) return res.json({ success: false, err: err });
-    return res.status(201).json({ success: true, companies: companyArray });
+    return res.status(200).json({ success: true, companies: companyArray });
+  })
+})
+
+
+app.post("/company/get-name-from-code", (req, res) => {
+  Company.findOne({ code: req.body.code }, (err, company) => {
+    if (err || !company) return res.json({ success: false, err: err });
+    return res.status(200).json({ success: true, companyName: company.name });
   })
 })
 

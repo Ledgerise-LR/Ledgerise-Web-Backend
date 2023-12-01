@@ -51,7 +51,7 @@ companySchema.statics.loginVerifier = function (body, callback) {
 
 companySchema.statics.authenticateVerifier = function (body, callback) {
   Company.findOne({ code: body.code }, (err, company) => {
-    if (err) return callback("auth_error");
+    if (err || !company) return callback("auth_error");
     if (company && company._id == body._id) return callback(null, company);
   })
 }
