@@ -33,6 +33,12 @@ const donorSchema = new mongoose.Schema({
     trim: true,
     required: true,
     unique: true
+  },
+
+  national_identification_number: {
+    type: String,
+    trim: true,
+    required: true
   }
 });
 

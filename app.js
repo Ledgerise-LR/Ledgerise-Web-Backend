@@ -233,6 +233,7 @@ app.get("/get-collection", (req, res) => {
 })
 
 app.get("/get-all-collections", (req, res) => {
+  console.log("hello")
   subcollection.find({}, (err, subcollections) => {
     res.status(200).json({ subcollections: subcollections });
   })
@@ -244,19 +245,24 @@ app.get("/get-single-collection", (req, res) => {
   })
 })
 
-let randomIndexPrev = 0;
+let randomIndexPrev = 1;
 app.get("/get-random-featured-nft", (req, res) => {
   ActiveItem.find({}, (err, activeItems) => {
     if (err) return console.log("bad_request");
     let randomIndex;
-    do {
-      randomIndex = Math.floor(Math.random() * activeItems.length);
-    } while (randomIndex == randomIndexPrev);
+    if (activeItems.length == 1) {
+      randomIndex = 0;
+    } else {
+      do {
+        randomIndex = Math.floor(Math.random() * activeItems.length);
+      } while (randomIndex == randomIndexPrev);
+    }
     if (activeItems.length <= 0) {
       return res.json({ data: {} });
     }
     subcollection.findOne({ itemId: activeItems[randomIndex].subcollectionId }, (err, collection) => {
       randomIndexPrev = randomIndex;
+
       return res.json({
         data: asset = {
           tokenId: activeItems[randomIndex].tokenId,
@@ -411,6 +417,14 @@ app.get("/get-all-visual-verifications", (req, res) => {
 })
 
 
+app.post("/donate/payment", (req, res) => {
+  ActiveItem.buyItem(req.body, (err, activeItem) => {
+    if (err) return res.json({ success: false, err });
+    return res.status(200).json({ success: true, data: activeItem });
+  })
+})
+
+
 app.post("/donate/payment/usd", async (req, res) => {
 
   req.body.donateFiatToken = AES.decrypt(req.body.donateFiatToken, donateFiatTokenAesHashKey);
@@ -456,6 +470,13 @@ app.get("/reports/get-past", (req, res) => {
   })
 })
 
+app.post("/reports/report-issue", (req, res) => {
+  Report.createNewReport(req.body, (err, report) => {
+    if (err) return res.status(400).json({ err: "bad_request" });
+    return res.status(200).json({ success: true, data: report });
+  })
+})
+
 
 app.post("/auth/login", (req, res) => {
   Donor.loginDonor(req.body, (err, donor) => {
@@ -469,7 +490,7 @@ app.post("/auth/authenticate", (req, res) => {
 
   Donor.findById(id, (err, donor) => {
     if (err || !donor) return res.json({ success: false, err: "authentication_failed" });
-    if (!err || donor) return res.status(200).json({ success: true, username: donor.email.split("@")[0] });
+    if (!err || donor) return res.status(200).json({ success: true, donor: donor });
   })
 })
 
@@ -526,7 +547,7 @@ app.post("/company/get-name-from-code", (req, res) => {
 server.listen(PORT, async () => {
 
   // updateAttributes();
-  handleItemBought();
+  // handleItemBought();
   handleItemCanceled();
   handleItemListed();
   handleSubcollectionCreated();

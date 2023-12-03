@@ -81,6 +81,11 @@
       },
       {
         "internalType": "uint256",
+        "name": "pricePayed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
         "name": "price",
         "type": "uint256"
       }
@@ -252,10 +257,10 @@
   {
     "anonymous": false,
     "inputs": [{
-        "indexed": true,
-        "internalType": "address",
+        "indexed": false,
+        "internalType": "string",
         "name": "buyer",
-        "type": "address"
+        "type": "string"
       },
       {
         "indexed": true,
@@ -270,7 +275,7 @@
         "type": "uint256"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256",
         "name": "price",
         "type": "uint256"
@@ -283,42 +288,6 @@
       }
     ],
     "name": "ItemBought",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [{
-        "indexed": true,
-        "internalType": "address",
-        "name": "buyer",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "nftAddress",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "fiatPrice",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "openseaTokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "ItemBoughtWithFiat",
     "type": "event"
   },
   {
@@ -490,19 +459,49 @@
   {
     "anonymous": false,
     "inputs": [{
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
       }
     ],
     "name": "RealItemHistorySaved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{
+        "indexed": false,
+        "internalType": "string",
+        "name": "reporter",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "message",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256[]",
+        "name": "reportCode",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "ReportCreated",
     "type": "event"
   },
   {
@@ -535,6 +534,11 @@
       {
         "internalType": "string",
         "name": "tokenUri",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "ownerAddressString",
         "type": "string"
       }
     ],
@@ -573,6 +577,11 @@
         "internalType": "uint256",
         "name": "fiatAmount",
         "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "donorId",
+        "type": "string"
       }
     ],
     "name": "buyItemWithFiatCurrency",
@@ -595,32 +604,6 @@
     "name": "cancelItem",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{
-        "internalType": "uint256",
-        "name": "uniqueItemId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "nftAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "ownerAddress",
-        "type": "address"
-      }
-    ],
-    "name": "checkOwnedByUser",
-    "outputs": [{
-      "internalType": "bool",
-      "name": "isOwned",
-      "type": "bool"
-    }],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -904,9 +887,9 @@
           "type": "string"
         },
         {
-          "internalType": "address",
+          "internalType": "string",
           "name": "buyer",
-          "type": "address"
+          "type": "string"
         },
         {
           "internalType": "string",
@@ -1109,6 +1092,28 @@
   {
     "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{
+        "internalType": "string",
+        "name": "reporter",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "message",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "reportCodes",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "reportIssue",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1332,6 +1337,32 @@
   },
   {
     "inputs": [{
+      "internalType": "uint256",
+      "name": "",
+      "type": "uint256"
+    }],
+    "name": "s_reports",
+    "outputs": [{
+        "internalType": "string",
+        "name": "reporter",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "message",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -1347,9 +1378,9 @@
         "type": "string"
       },
       {
-        "internalType": "address",
+        "internalType": "string",
         "name": "buyer",
-        "type": "address"
+        "type": "string"
       },
       {
         "internalType": "string",

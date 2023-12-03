@@ -1,12 +1,14 @@
 
 const mongoose = require("mongoose");
 const networkMapping = require("../constants/networkMapping.json");
-const abis = require("../constants/abi.json");
-const { ethers } = require("ethers");
+const ethers = require("ethers");
+const abi = require("../constants/abi.json");
 const CryptoJS = require("crypto-js");
 const async = require("async");
 const saveToBlockchain = require("../listeners/saveRealItemHistory");
 const visualVerification = require("./VisualVerification");
+const Subcollection = require("./Subcollection");
+const { getIdFromParams } = require("../utils/getIdFromParams");
 require("dotenv").config();
 
 const activeItemSchema = new mongoose.Schema({
@@ -252,6 +254,64 @@ activeItemSchema.statics.sortNewest = function (body, callback) {
   });
 }
 
+const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
+
+const provider = new ethers.providers.WebSocketProvider(process.env.URL);
+const signer = new ethers.Wallet(
+  `0x${process.env.OWNER_PRIVATE_KEY}`,
+  provider
+)
+
+activeItemSchema.statics.buyItem = async function (body, callback) {
+
+  const marketplace = new ethers.Contract(marketplaceAddress, abi, signer);
+
+  const buyItemTx = await marketplace.connect(signer).buyItem(
+    body.nftAddress,
+    body.tokenId,
+    body.charityAddress,
+    body.tokenUri,
+    body.ownerAddressString,
+    { value: body.price }
+  )
+
+  const buyItemTxReceipt = await buyItemTx.wait(1);
+
+  const args = buyItemTxReceipt.events[4].args;
+
+  ActiveItem.findOne({ itemId: getIdFromParams(body.nftAddress, body.tokenId) }, (err, activeItem) => {
+    if (err) return console.log("bought_failed");
+    activeItem.buyer = body.ownerAddressString.toString();
+    activeItem.availableEditions = activeItem.availableEditions - 1;
+    activeItem.tokenId = body.tokenId;
+
+    const currentDate = new Date();
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+    const historyObject = {
+      key: "buy",
+      date: formattedDate,
+      price: body.price,
+      buyer: body.ownerAddressString,
+      openseaTokenId: parseInt(args.openseaTokenId),
+      transactionHash: buyItemTxReceipt.transactionHash
+    }
+    activeItem.history.push(historyObject);
+
+    Subcollection.findOne({ subcollectionId: activeItem.subcollectionId }, (err, subcollection) => {
+      if (err) return console.log("bought_failed");
+      subcollection.totalRaised = (Number(subcollection.totalRaised) + Number(ethers.utils.formatEther(body.price, "ether"))).toString();
+
+      activeItem.save();
+      subcollection.save();
+      return callback(null, activeItem);
+    })
+  })
+
+}
+
+
 activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
 
 
@@ -314,6 +374,7 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
     return callback("bad_request", null);
   }
 }
+
 
 const ActiveItem = mongoose.model("ActiveItem", activeItemSchema);
 

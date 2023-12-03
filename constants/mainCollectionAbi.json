@@ -87,9 +87,9 @@
     "anonymous": false,
     "inputs": [{
         "indexed": true,
-        "internalType": "address",
+        "internalType": "string",
         "name": "owner",
-        "type": "address"
+        "type": "string"
       },
       {
         "indexed": true,
@@ -231,6 +231,21 @@
     "type": "function"
   },
   {
+    "inputs": [{
+      "internalType": "uint256",
+      "name": "tokenId",
+      "type": "uint256"
+    }],
+    "name": "getOwnerOfToken",
+    "outputs": [{
+      "internalType": "string",
+      "name": "",
+      "type": "string"
+    }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getSubcollectionCounter",
     "outputs": [{
@@ -317,9 +332,9 @@
         "type": "string"
       },
       {
-        "internalType": "address",
+        "internalType": "string",
         "name": "creatorAddress",
-        "type": "address"
+        "type": "string"
       }
     ],
     "name": "mintNft",
