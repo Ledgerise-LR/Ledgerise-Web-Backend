@@ -26,13 +26,14 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key) => {
   try {
 
     const mintVerificationTx = await ledgeriseLens.connect(signer).mintVisualNft(
-      openseaTokenId,
+      parseInt(openseaTokenId),
       tokenUri,
       buyer,
       EVENT_DATA[key]
     );
 
     const mintVerificationTxReceipt = await mintVerificationTx.wait(1);
+
     return {
       tokenId: mintVerificationTxReceipt.events[1].args.tokenCounter,
       transactionHash: mintVerificationTx.transactionHash

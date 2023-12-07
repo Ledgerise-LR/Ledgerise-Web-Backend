@@ -33,6 +33,7 @@ module.exports = async (realItemHistoryData) => {
     );
 
     const saveItemToRealHistoryTxReceipt = await saveItemToRealHistoryTx.wait(1);
+
     return saveItemToRealHistoryTxReceipt.transactionHash
   } catch (error) {
     console.log(error);

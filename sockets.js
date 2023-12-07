@@ -3,6 +3,7 @@ const socketIo = require("socket.io");
 const { spawn } = require("child_process");
 const VisualVerification = require("./models/VisualVerification");
 const async = require("async");
+const ActiveItem = require("./models/ActiveItem");
 
 const PATH_NAME = "/realtime";
 const PREDICT_DIR = "../LedgeriseLens-AI/detect.py";
@@ -27,6 +28,7 @@ const processImage = (imageBase64) => {
 
     pythonProcess.stdout.on("data", (data) => {
       const processedImage = data.toString().trim();
+      console.log(processedImage)
       resolve(processedImage)
     })
 
@@ -46,7 +48,7 @@ let user_info = "";
 
 var socketConnection = "";
 
-const connectRealTime = (server) => {
+const connectRealTime = (server, nftAddress) => {
   const io = socketIo(server);
   const realtimeNamespace = io.of('/realtime');
 
@@ -83,17 +85,24 @@ const connectRealTime = (server) => {
 
           if (parsedProcessedImageData.found_status == "true") {
 
-            user_info = JSON.parse(user_info); // delete later for LR COLLAB
-            async.timesSeries(user_info.length, (i, next) => {
+            const tokenId = user_info.split("-")[0];
+            let donorsArray = user_info.split("-")[1];
 
-              const userInfo = user_info[i].split("-");
+            donorsArray = JSON.parse(donorsArray);
+            async.timesSeries(donorsArray.length, async (i, next) => {
+
+              const openseaTokenId = parseInt(donorsArray[i]);
+
+              const item = await ActiveItem.findOne({ tokenId: tokenId }).select({ history: { $elemMatch: { openseaTokenId: openseaTokenId } } });
+
+              const buyer = item.history[0].buyer;
 
               const eventData = {
-                nftAddress: userInfo[0],
-                tokenId: userInfo[1],
-                openseaTokenId: userInfo[2],
+                nftAddress: nftAddress,
+                tokenId: tokenId,
+                openseaTokenId: openseaTokenId,
                 base64_image: tempBase64Image,
-                buyer: userInfo[3],
+                buyer: buyer,
                 key: key,
                 location: location,
                 date: date,
@@ -110,8 +119,12 @@ const connectRealTime = (server) => {
 
                 if (!err && visualVerification) await socket.emit("upload", `complete-${i}`);
 
-                return next();
+                if (donorsArray.length != 1) {
+                  return next();
+                }
               })
+
+
             })
           }
         }

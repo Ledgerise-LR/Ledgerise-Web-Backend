@@ -39,6 +39,15 @@ const donorSchema = new mongoose.Schema({
     type: String,
     trim: true,
     required: true
+  },
+
+  name: {
+    type: String,
+    required: true
+  },
+  surname: {
+    type: String,
+    required: true
   }
 });
 

@@ -233,7 +233,6 @@ app.get("/get-collection", (req, res) => {
 })
 
 app.get("/get-all-collections", (req, res) => {
-  console.log("hello")
   subcollection.find({}, (err, subcollections) => {
     res.status(200).json({ subcollections: subcollections });
   })
@@ -528,6 +527,19 @@ app.post("/auth/company/create", (req, res) => {
   })
 })
 
+app.post("/donor/get-receipt-data", (req, res) => {
+  ActiveItem.findOne({ tokenId: req.body.tokenId }, (err, activeItem) => {
+    if (err) return res.json({ success: false, err: err });
+    async.timesSeries(activeItem.history.length, (i, next) => {
+      const eachHistory = activeItem.history[i];
+      if (eachHistory.buyer = req.body.buyer && eachHistory.openseaTokenId == req.body.openseaTokenId) return res.status(200).json({ success: true, history: eachHistory });
+      else return next();
+    }, (err) => {
+      return res.status(200).json({ success: true, history: "verify_failed" });
+    })
+  })
+})
+
 app.get("/company/get-all", (req, res) => {
   Company.find({}, (err, companyArray) => {
     if (err) return res.json({ success: false, err: err });
@@ -556,7 +568,7 @@ server.listen(PORT, async () => {
 
   verifyBlockchain();
 
-  connectRealTime(server);
+  connectRealTime(server, nftAddress);
   receiveImage(app);
 
   console.log("Server is listening on port", PORT);
