@@ -21,11 +21,11 @@ module.exports = async (realItemHistoryData) => {
 
     const saveItemToRealHistoryTx = await marketplace.connect(signer).saveRealItemHistory(
       realItemHistoryData.nftAddress,
-      realItemHistoryData.marketplaceTokenId,
+      parseInt(realItemHistoryData.openseaTokenId),
       realItemHistoryData.key,
       realItemHistoryData.buyer,
       realItemHistoryData.date,
-      realItemHistoryData.openseaTokenId,
+      parseInt(realItemHistoryData.openseaTokenId),
       realItemHistoryData.location.latitude,
       realItemHistoryData.location.longitude,
       realItemHistoryData.location.decimals,

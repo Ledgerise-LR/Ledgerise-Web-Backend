@@ -111,17 +111,13 @@ const connectRealTime = (server, nftAddress) => {
 
               VisualVerification.createVisualVerification(eventData, async (err, visualVerification) => {
 
-                if (err == "error") await socket.emit("upload", `error-${i}`);
+                if (err == "error") await socket.emit("upload", `error-${i}-${donorsArray.length}`);
 
-                if (err == "already_verified") await socket.emit("upload", `already_verified-${i}`);
+                if (err == "already_verified") await socket.emit("upload", `already_verified-${i}-${donorsArray.length}`);
 
-                if (err == "incompatible_data") await socket.emit("upload", `incompatible_data-${i}`);
+                if (err == "incompatible_data") await socket.emit("upload", `incompatible_data-${i}-${donorsArray.length}`);
 
-                if (!err && visualVerification) await socket.emit("upload", `complete-${i}`);
-
-                if (donorsArray.length != 1) {
-                  return next();
-                }
+                if (!err && visualVerification) await socket.emit("upload", `complete-${i}-${donorsArray.length}`);
               })
 
 

@@ -26,6 +26,7 @@
     "hardhat": "^2.12.7",
     "mongodb": "^5.0.1",
     "mongoose": "^6.9.2",
+    "noble": "^1.9.1",
     "nodemon": "^2.0.20",
     "socket.io": "^4.7.2",
     "web3": "^1.8.2",

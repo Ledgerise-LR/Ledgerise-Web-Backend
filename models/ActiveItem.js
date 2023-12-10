@@ -65,6 +65,11 @@ const activeItemSchema = new mongoose.Schema({
       },
       transactionHash: {
         type: String
+      },
+      isQrCodePrinted: {
+        type: Boolean,
+        required: false,
+        default: false
       }
     }
   ],
@@ -186,7 +191,7 @@ activeItemSchema.statics.sortDefault = function (body, callback) {
 
       : priceFilteredArray = activeItems
 
-    console.log(priceFilteredArray.length)
+    // console.log(priceFilteredArray.length)
 
     filters.editionFilters[0] != undefined
       ? async.timesSeries(priceFilteredArray.length, (j, next) => {
