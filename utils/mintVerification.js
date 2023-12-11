@@ -36,7 +36,7 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key) => {
 
     return {
       tokenId: mintVerificationTxReceipt.events[1].args.tokenCounter,
-      transactionHash: mintVerificationTx.transactionHash
+      transactionHash: mintVerificationTxReceipt.transactionHash
     };
   } catch (error) {
     console.log(error);
