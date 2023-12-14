@@ -531,8 +531,17 @@ app.post("/donor/get-receipt-data", (req, res) => {
   ActiveItem.findOne({ tokenId: req.body.tokenId }, (err, activeItem) => {
     if (err) return res.json({ success: false, err: err });
     async.timesSeries(activeItem.history.length, (i, next) => {
-      const eachHistory = activeItem.history[i];
-      if (eachHistory.buyer = req.body.buyer && eachHistory.openseaTokenId == req.body.openseaTokenId) return res.status(200).json({ success: true, history: eachHistory });
+      let eachHistory = activeItem.history[i];
+
+      const history = {
+        key: eachHistory.key,
+        date: eachHistory.date,
+        price: eachHistory.price,
+        openseaTokenId: eachHistory.openseaTokenId,
+        subcollectionId: activeItem.subcollectionId
+      }
+
+      if (eachHistory.buyer = req.body.buyer && eachHistory.openseaTokenId == req.body.openseaTokenId) return res.status(200).json({ success: true, history });
       else return next();
     }, (err) => {
       return res.status(200).json({ success: true, history: "verify_failed" });
