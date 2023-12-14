@@ -28,7 +28,7 @@ const processImage = (imageBase64) => {
 
     pythonProcess.stdout.on("data", (data) => {
       const processedImage = data.toString().trim();
-      console.log(processedImage)
+      // console.log(processedImage)
       resolve(processedImage)
     })
 

@@ -234,7 +234,33 @@ app.get("/get-collection", (req, res) => {
 
 app.get("/get-all-collections", (req, res) => {
   subcollection.find({}, (err, subcollections) => {
-    res.status(200).json({ subcollections: subcollections });
+
+    let resArray = [];
+
+    async.timesSeries(subcollections.length, (i, next) => {
+      const eachSubcollection = subcollections[i];
+
+      Company.findOne({ code: eachSubcollection.companyCode }, (err, company) => {
+        if (err || !company) return res.json({ success: false, err: err });
+
+        const data = {
+          itemId: eachSubcollection.itemId,
+          name: eachSubcollection.name,
+          image: eachSubcollection.image,
+          totalRaised: eachSubcollection.totalRaised,
+          charityAddress: company.charityAddress,
+          charityName: company.name,
+          companyImage: company.image,
+        }
+
+        resArray.push(data);
+
+        next();
+      })
+    }, (err) => {
+      if (err) return res.json({ success: false, err: err });
+      res.status(200).json({ subcollections: resArray });
+    })
   })
 })
 
@@ -243,6 +269,29 @@ app.get("/get-single-collection", (req, res) => {
     res.status(200).json({ subcollection: subcollection });
   })
 })
+
+
+app.post("/update-subcollection-image", (req, res) => {
+
+  const form = new formidable.IncomingForm();
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error uploading file' });
+    }
+
+    const imageData = fields.image[0];
+    const subcollectionId = fields.subcollectionId[0];
+    const companyCode = fields.companyCode[0];
+
+    subcollection.findOneAndUpdate({ itemId: subcollectionId }, { image: imageData, companyCode, companyCode }, (err, subcollection) => {
+      if (err || !subcollection) return res.json({ success: false, err: err });
+      return res.status(200).json({ success: true, subcollection });
+    })
+  })
+})
+
 
 let randomIndexPrev = 1;
 app.get("/get-random-featured-nft", (req, res) => {
@@ -521,10 +570,28 @@ app.get("/auth/authenticate-verifier", (req, res) => {
 })
 
 app.post("/auth/company/create", (req, res) => {
-  Company.createNewCompany(req.body, (err, company) => {
-    if (err) return res.json({ success: false, err: err });
-    return res.status(201).json({ success: true, company: company });
-  })
+  const form = new formidable.IncomingForm();
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error uploading file' });
+    }
+
+    const body = {
+      image: fields.image[0],
+      name: fields.name[0],
+      code: fields.code[0],
+      email: fields.email[0],
+      password: fields.password[0],
+      charityAddress: fields.charityAddress[0]
+    }
+
+    Company.createNewCompany(body, (err, company) => {
+      if (err) return res.json({ success: false, err: err });
+      return res.status(201).json({ success: true, company: company });
+    });
+  });
 })
 
 app.post("/donor/get-receipt-data", (req, res) => {
@@ -561,6 +628,13 @@ app.post("/company/get-name-from-code", (req, res) => {
   Company.findOne({ code: req.body.code }, (err, company) => {
     if (err || !company) return res.json({ success: false, err: err });
     return res.status(200).json({ success: true, companyName: company.name });
+  })
+})
+
+app.post("/company/get-company-from-code", (req, res) => {
+  Company.findOne({ code: req.body.code }, (err, company) => {
+    if (err || !company) return res.json({ success: false, err: err });
+    return res.status(200).json({ success: true, company });
   })
 })
 

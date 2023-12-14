@@ -29,6 +29,17 @@ const companySchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true
+  },
+
+  image: {
+    type: String,
+    required: false
+  },
+
+  charityAddress: {
+    type: String,
+    required: true,
+    trim: true
   }
 
 });

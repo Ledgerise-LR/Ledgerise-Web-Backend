@@ -8,12 +8,13 @@ const subcollectionSchema = new mongoose.Schema({
   name: {
     type: String
   },
-  charityAddress: {
-    type: String
+
+  companyCode: {
+    type: String,
+    required: false,
+    trim: true
   },
-  charityName: {
-    type: String
-  },
+
   properties: [
     property = {
       type: String
