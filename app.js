@@ -634,7 +634,7 @@ app.post("/company/get-name-from-code", (req, res) => {
 app.post("/company/get-company-from-code", (req, res) => {
   Company.findOne({ code: req.body.code }, (err, company) => {
     if (err || !company) return res.json({ success: false, err: err });
-    return res.status(200).json({ success: true, company });
+    return res.status(200).json({ success: true, company: company });
   })
 })
 

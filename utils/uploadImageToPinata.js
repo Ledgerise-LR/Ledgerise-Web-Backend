@@ -12,7 +12,7 @@ const pinata = new pinataSDK(pinataApiKey, pinataSecretApiKey);
 const uploadImageToPinata = async (body) => {
   try {
 
-    console.log("preparing data...");
+    // console.log("preparing data...");
 
     const Readable = stream.Readable;
     const base64Stream = new Readable();
@@ -20,7 +20,7 @@ const uploadImageToPinata = async (body) => {
     base64Stream.push(null);
 
 
-    console.log("data prepared...")
+    // console.log("data prepared...")
 
     const response = await pinata.pinFileToIPFS(base64Stream, {
       pinataMetadata: {
