@@ -40,7 +40,7 @@ const donateFiatToken = process.env.DONATE_FIAT_TOKEN;
 const donateFiatTokenAesHashKey = process.env.DONATE_FIAT_TOKEN_HASH_SECRET_KEY;
 const authenticationKey = process.env.AUTHENTICATION_KEY;
 
-const mongoUri = "mongodb://127.0.0.1:27017/nft-fundraising-api";
+const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
