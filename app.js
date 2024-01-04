@@ -134,19 +134,25 @@ app.get("/get-asset", (req, res) => {
               if (eachCollaboratorSet.length == numberOfCollaborators) {
                 return nextK();
               } else {
-                async.timesSeries(priorityList.length, (l, nextL) => {
-                  let flagL = checkForBuyerPresence(priorityList[l].split("_")[1], eachCollaboratorSet);
-                  if (eachCollaboratorSet.length == numberOfCollaborators) return nextK();
-                  else if (flagL) {
-                    eachCollaboratorSet.push(priorityList[l]);
-                    priorityList.splice(l, 1);
-                    return nextL();
-                  } else {
-                    return nextL();
-                  }
-                }, (err) => {
-                  nextK();
-                })
+                if (priorityList.length) {
+                  async.timesSeries(priorityList.length, (l, nextL) => {
+                    if (priorityList[l]) {
+                      let flagL = checkForBuyerPresence(priorityList[l].split("_")[1], eachCollaboratorSet);
+                      if (eachCollaboratorSet.length == numberOfCollaborators) return nextK();
+                      else if (flagL) {
+                        eachCollaboratorSet.push(priorityList[l]);
+                        priorityList.splice(l, 1);
+                        return nextL();
+                      } else {
+                        return nextL();
+                      }
+                    } else {
+                      nextL();
+                    }
+                  }, (err) => {
+                    nextK();
+                  })
+                }
               }
             }, (err) => {
               // console.log(collaboratorClustersSet);
@@ -641,7 +647,7 @@ app.post("/company/get-company-from-code", (req, res) => {
 
 server.listen(PORT, async () => {
 
-  // updateAttributes();
+  updateAttributes();
   // handleItemBought();
   handleItemCanceled();
   handleItemListed();
@@ -649,7 +655,9 @@ server.listen(PORT, async () => {
 
   handleAuctionCreated();
 
-  verifyBlockchain();
+  setInterval(() => {
+    verifyBlockchain();
+  }, 60000);
 
   connectRealTime(server, nftAddress);
   receiveImage(app);
