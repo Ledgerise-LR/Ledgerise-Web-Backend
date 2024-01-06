@@ -4,38 +4,22 @@ const { spawn } = require("child_process");
 const VisualVerification = require("./models/VisualVerification");
 const async = require("async");
 const ActiveItem = require("./models/ActiveItem");
+const { SERVER_URL, PORT } = require("./utils/serverUrl");
+const axios = require("axios");
 
 const PATH_NAME = "/realtime";
-const PREDICT_DIR = "../LedgeriseLens-AI/detect.py";
-// const TEMP_IMAGE_DIR = "../Nft-Fundraising-nodejs-backend/temp_image.png"
-
-const printImageChunks = async (imageBase64, pythonProcess) => {
-  if (imageBase64.length <= 0) return setIsProcessing(false);
-  const chunkSize = 64;
-  for (let offset = 0; offset < imageBase64.length; offset += chunkSize) {
-    const chunk = await imageBase64.substring(offset, offset + chunkSize);
-    pythonProcess.stdin.write(chunk);
-  }
-
-  pythonProcess.stdin.end();
-}
 
 const processImage = (imageBase64) => {
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn("python3", [PREDICT_DIR]);
-
-    printImageChunks(imageBase64, pythonProcess);
-
-    pythonProcess.stdout.on("data", (data) => {
-      const processedImage = data.toString().trim();
-      // console.log(processedImage)
-      resolve(processedImage)
+    // send request to python server
+    const url = `${SERVER_URL}:${PORT}/real-time`;
+    axios.post(url, {
+      image: imageBase64
     })
-
-    pythonProcess.stderr.on("data", (data) => {
-      const processedImage = data.toString().trim();
-      console.log(processedImage)
-    })
+      .then(res => {
+        const data = res.data.trim();
+        resolve(data);
+      })
   });
 }
 
@@ -77,11 +61,10 @@ const connectRealTime = (server, nftAddress) => {
         // console.log(tempBase64Image);
         const processedImageData = await processImage(tempBase64Image);
         if (processedImageData != undefined) {
-          const formattedProcessedImageData = processedImageData.replace(/'/g, '"')
 
-          await socket.emit('processedImage', JSON.parse(formattedProcessedImageData));
+          await socket.emit('processedImage', JSON.parse(processedImageData));
 
-          const parsedProcessedImageData = JSON.parse(formattedProcessedImageData);
+          const parsedProcessedImageData = JSON.parse(processedImageData);
 
           if (parsedProcessedImageData.found_status == "true") {
 

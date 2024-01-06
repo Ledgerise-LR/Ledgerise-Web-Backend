@@ -1,29 +1,21 @@
 
-const { spawn } = require("child_process");
-
+const axios = require("axios");
+const { SERVER_URL, PORT } = require("./utils/serverUrl");
 const PATH_NAME = "/privacy/blur-visual";
-const BLUR_AID_PARCEL_DIR = "../LedgeriseLens-AI/getBlur.py";
 
 let receivedData = "";
 
 const processImage = (ipfsGatewayTokenUri) => {
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn("python3", [BLUR_AID_PARCEL_DIR]);
 
-    pythonProcess.stdin.write(ipfsGatewayTokenUri);
-    pythonProcess.stdin.end();
-
-    pythonProcess.stdout.on("data", (data) => {
-
-      const resData = data.toString().trim();
-      if (resData == "end") resolve(receivedData)
-      else if (resData != "end") receivedData += resData;
+    const url = `${SERVER_URL}:${PORT}/privacy/blur`
+    axios.post(url, {
+      tokenUri: ipfsGatewayTokenUri
     })
-
-    pythonProcess.stderr.on("data", (data) => {
-      const processedImage = data.toString().trim();
-      console.error(processedImage);
-    })
+      .then(res => {
+        const data = JSON.parse(res.data);
+        resolve(data["image"]);
+      })
   });
 }
 
