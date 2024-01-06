@@ -1,5 +1,5 @@
 
-const SERVER_URL = "http://127.0.0.1"
-const PORT = 8080
+const SERVER_URL = "https://lens-ledgerise.onrender.com"
+const PORT = ""
 
 module.exports = { SERVER_URL, PORT }
