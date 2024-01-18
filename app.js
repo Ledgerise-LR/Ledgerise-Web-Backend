@@ -70,7 +70,7 @@ app.use((req, res, next) => {
 function checkForBuyerPresence(buyerAddress, eachCollaboratorSet) {
   let flag = 1;
   eachCollaboratorSet.forEach(eachCollaborator => {
-    if (eachCollaborator.split("_")[1] == buyerAddress) {
+    if (eachCollaborator.split("_")[1] == buyerAddress || !buyerAddress) {
       flag = 0;
     }
   })
@@ -127,7 +127,9 @@ app.get("/get-asset", (req, res) => {
 
             next();
           }, (err) => {
-            collaboratorClustersSet.push(eachCollaboratorSet);
+            if (eachCollaboratorSet.length) {
+              collaboratorClustersSet.push(eachCollaboratorSet);
+            }
 
             async.timesSeries(collaboratorClustersSet.length, (k, nextK) => {
               const eachCollaboratorSet = collaboratorClustersSet[k];
@@ -152,11 +154,11 @@ app.get("/get-asset", (req, res) => {
                   }, (err) => {
                     nextK();
                   })
+                } else {
+                  nextK();
                 }
               }
             }, (err) => {
-              // console.log(collaboratorClustersSet);
-              // console.log(priorityList)
               if (priorityList.length) {
                 async.timesSeries(priorityList.length, (m, nextM) => {
                   const arr = [priorityList[m]];
