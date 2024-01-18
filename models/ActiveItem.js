@@ -3,13 +3,17 @@ const mongoose = require("mongoose");
 const networkMapping = require("../constants/networkMapping.json");
 const ethers = require("ethers");
 const abi = require("../constants/abi.json");
-const CryptoJS = require("crypto-js");
 const async = require("async");
 const saveToBlockchain = require("../listeners/saveRealItemHistory");
 const visualVerification = require("./VisualVerification");
 const Subcollection = require("./Subcollection");
+const Iyzipay = require("iyzipay");
 const { getIdFromParams } = require("../utils/getIdFromParams");
+const Donor = require("./Donor");
+const {v4: uuidv4} = require("uuid");
+
 require("dotenv").config();
+
 
 const activeItemSchema = new mongoose.Schema({
   itemId: {
@@ -115,6 +119,10 @@ const activeItemSchema = new mongoose.Schema({
     type: Object,
   }
 });
+
+const PAYMENT_API_KEY = process.env.PAYMENT_API_KEY;
+const PAYMENT_SECRET_KEY = process.env.PAYMENT_SECRET_KEY;
+
 
 function getFiltersByQueries(priceRange, editionRange) {
 
@@ -314,6 +322,82 @@ activeItemSchema.statics.buyItem = async function (body, callback) {
     })
   })
 
+}
+
+
+activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
+
+  // iyzico payment
+
+  const iyzipay = new Iyzipay({
+    apiKey: PAYMENT_API_KEY,
+    secretKey: PAYMENT_SECRET_KEY,
+    uri: 'https://sandbox-api.iyzipay.com'
+  })
+
+  const {s_tokenCounter, donorId, price, cardHolderName, cardNumber, expiryMonth, expiryYear, cvc, tokenName, subcollectionName, tokenId} = body;
+
+
+  Donor.findById(donorId, (err, donor) => {
+
+    const paymentData = {
+      locale: Iyzipay.LOCALE.TR,
+      conversationId: uuidv4(),
+      price: price.toString(),
+      paidPrice: price.toString(),
+      currency: Iyzipay.CURRENCY.TRY,
+      installment: '1',
+      paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
+      paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+      paymentCard: {
+          cardHolderName: cardHolderName,
+          cardNumber: cardNumber,
+          expireMonth: expiryMonth,
+          expireYear: expiryYear[2] + expiryYear[3],
+          cvc: cvc,
+          registerCard: 0
+      },
+      buyer: {
+          id: donor._id,
+          name: donor.name,
+          surname: donor.surname,
+          gsmNumber: donor.phone_number,
+          email: donor.email,
+          identityNumber: donor.national_identification_number,
+          registrationAddress: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+          ip: '85.34.78.112',
+          city: 'Istanbul',
+          country: 'Turkey',
+      },
+      shippingAddress: {
+          contactName: donor.name,
+          city: 'Istanbul',
+          country: 'Turkey',
+          address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1'
+      },
+      billingAddress: {
+          contactName: donor.name,
+          city: 'Istanbul',
+          country: 'Turkey',
+          address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1'
+      },
+      basketItems: [
+          {
+              id: tokenId.toString(),
+              name: tokenName,
+              category1: subcollectionName,
+              itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
+              price: price
+          },
+      ]
+    };  
+    iyzipay.payment.create(paymentData, (err, result) => {
+      if (err) return console.error(err);
+      console.log(result);
+      return callback(null, true);
+    })
+    // Save to blockchain
+  })
 }
 
 

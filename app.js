@@ -481,41 +481,12 @@ app.post("/donate/payment", (req, res) => {
 })
 
 
-app.post("/donate/payment/usd", async (req, res) => {
+app.post("/donate/payment/TRY", async (req, res) => {
 
-  req.body.donateFiatToken = AES.decrypt(req.body.donateFiatToken, donateFiatTokenAesHashKey);
-  req.body.cardOwner = AES.decrypt(req.body.cardOwner, donateFiatTokenAesHashKey);
-  req.body.PAN = AES.decrypt(req.body.PAN, donateFiatTokenAesHashKey);
-  req.body.expiryMonth = AES.decrypt(req.body.expiryMonth, donateFiatTokenAesHashKey);
-  req.body.expiryYear = AES.decrypt(req.body.expiryYear, donateFiatTokenAesHashKey);
-  req.body.CVV = AES.decrypt(req.body.CVV, donateFiatTokenAesHashKey);
-
-  // send transaction through papara
-
-  // when success run below
-
-  if (req.body.donateFiatToken == donateFiatToken) {
-    if (typeof req.body.tokenId == "number" && req.body.charityAddress.split("x")[0] == "0" && req.body.fiatAmount > 0) {
-      const buyWithFiatTx = await marketplace.buyItemWithFiatCurrency(
-        nftAddress,
-        req.body.tokenId,
-        req.body.charityAddress,
-        req.body.tokenUri,
-        req.body.priceFeed,
-        req.body.fiatAmount,
-        `0x${req.body.buyerTelephoneNumber}`
-      );
-
-      const buyWithFiatTxReceipt = await buyWithFiatTx.wait(1);
-
-      const eventRes = buyWithFiatTxReceipt.events[2].args;
-
-      if (eventRes) return res.status(200).json({ success: true, data: eventRes });
-      return res.status(400).json({ err: "item_not_emitted" });
-    }
-  } else {
-    res.status(400).json({ err: "bad_request" });
-  }
+  ActiveItem.buyItemCreditCard(req.body, (err, activeItem) => {
+    if (err) return res.json({ success: false, err });
+    return res.status(200).json({ success: true, data: activeItem });
+  })
 })
 
 
