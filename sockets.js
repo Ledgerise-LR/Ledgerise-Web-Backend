@@ -61,7 +61,7 @@ const connectRealTime = (server, nftAddress) => {
 
         // debugging
         console.log(`Length of image: ${tempBase64Image.length}`);
-        console.log(`Location: ${location}`);
+        console.log(`Location: ${location.latitude}, ${location.longitude}`);
         console.log(`user_info: ${user_info}`);
         console.log(`date: ${date}`);
         console.log(`key: ${key}`);
