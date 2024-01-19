@@ -58,7 +58,13 @@ const connectRealTime = (server, nftAddress) => {
         tempBase64Image += base64ImageData;
 
       } else if (base64ImageData == "done") {
-        // console.log(tempBase64Image);
+
+        // debugging
+        console.log(`Length of image: ${tempBase64Image.length}`);
+        console.log(`Location: ${location}`);
+        console.log(`user_info: ${user_info}`);
+        console.log(`date: ${date}`);
+        console.log(`key: ${key}`);
         const processedImageData = await processImage(tempBase64Image);
         if (processedImageData != undefined) {
 
