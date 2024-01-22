@@ -587,7 +587,7 @@ app.post("/donor/get-receipt-data", (req, res) => {
         subcollectionId: activeItem.subcollectionId
       }
 
-      if (eachHistory.buyer = req.body.buyer && eachHistory.openseaTokenId == req.body.openseaTokenId) return res.status(200).json({ success: true, history });
+      if (req.body.buyer && req.body.openseaTokenId && eachHistory.buyer == req.body.buyer && eachHistory.openseaTokenId == req.body.openseaTokenId) return res.status(200).json({ success: true, history });
       else return next();
     }, (err) => {
       return res.status(200).json({ success: true, history: "verify_failed" });

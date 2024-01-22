@@ -335,27 +335,27 @@ activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
     uri: 'https://sandbox-api.iyzipay.com'
   })
 
-  const {s_tokenCounter, donorId, price, cardHolderName, cardNumber, expiryMonth, expiryYear, cvc, tokenName, subcollectionName, tokenId} = body;
-
+  const {s_tokenCounter, donorId, price, cardHolderName, cardNumber, expiryMonth, expiryYear, CVV, tokenName, subcollectionName, tokenId} = body;
 
   Donor.findById(donorId, (err, donor) => {
 
+    console.log(donor)
+
     const paymentData = {
-      locale: Iyzipay.LOCALE.TR,
+      locale: "TR",
       conversationId: uuidv4(),
       price: price.toString(),
       paidPrice: price.toString(),
-      currency: Iyzipay.CURRENCY.TRY,
+      currency: "TRY",
       installment: '1',
-      paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
-      paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+      paymentChannel: "WEB",
+      paymentGroup: "PRODUCT",
       paymentCard: {
           cardHolderName: cardHolderName,
           cardNumber: cardNumber,
           expireMonth: expiryMonth,
-          expireYear: expiryYear[2] + expiryYear[3],
-          cvc: cvc,
-          registerCard: 0
+          expireYear: expiryYear,
+          cvc: CVV,
       },
       buyer: {
           id: donor._id,
@@ -364,35 +364,35 @@ activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
           gsmNumber: donor.phone_number,
           email: donor.email,
           identityNumber: donor.national_identification_number,
-          registrationAddress: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+          registrationAddress: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:2',
           ip: '85.34.78.112',
           city: 'Istanbul',
           country: 'Turkey',
       },
       shippingAddress: {
-          contactName: donor.name,
+          contactName: `${donor.name} ${donor.surname}`,
           city: 'Istanbul',
           country: 'Turkey',
-          address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1'
+          address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:2'
       },
       billingAddress: {
-          contactName: donor.name,
+          contactName: `${donor.name} ${donor.surname}`,
           city: 'Istanbul',
           country: 'Turkey',
-          address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1'
+          address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:2'
       },
       basketItems: [
           {
               id: tokenId.toString(),
               name: tokenName,
               category1: subcollectionName,
-              itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
-              price: price
+              itemType: "PHYSICAL",
+              price: price.toString()
           },
       ]
     };  
     iyzipay.payment.create(paymentData, (err, result) => {
-      if (err) return console.error(err);
+      if (err) console.error(err);
       console.log(result);
       return callback(null, true);
     })
