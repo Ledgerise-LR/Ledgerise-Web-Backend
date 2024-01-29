@@ -48,6 +48,8 @@ const connectRealTime = (server, nftAddress) => {
     socket.on("cameraFrame", async (base64ImageData) => {
       if (base64ImageData != "done" && base64ImageData.socketCallKey != "locationAndDate") {
 
+        console.log(base64ImageData.length);
+
         if (location || date || key) {
           location = "";
           date = "";
@@ -114,6 +116,8 @@ const connectRealTime = (server, nftAddress) => {
           }
         }
       } else if (base64ImageData.socketCallKey && base64ImageData.socketCallKey == "locationAndDate") {
+
+        console.log(base64ImageData);
 
         location = base64ImageData.location;
         date = base64ImageData.date;
