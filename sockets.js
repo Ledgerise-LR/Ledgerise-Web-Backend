@@ -31,6 +31,7 @@ let location = {};
 let date = ""
 let user_info = "";
 let bounds = {};
+let location2 = {};
 
 var socketConnection = "";
 
@@ -59,6 +60,7 @@ const connectRealTime = (server, nftAddress) => {
           user_info = "";
           tempBase64Image = "";
           bounds = "";
+          location2 = "";
         }
         tempBase64Image += base64ImageData;
 
@@ -67,6 +69,7 @@ const connectRealTime = (server, nftAddress) => {
         // debugging
         console.log(`Length of image: ${tempBase64Image.length}`);
         console.log(`Location: ${location.latitude}, ${location.longitude}`);
+        console.log(`Location 2: ${location2.latitude}, ${location2.longitude}`);
         console.log(`user_info: ${user_info}`);
         console.log(`date: ${date}`);
         console.log(`key: ${key}`);
@@ -89,6 +92,8 @@ const connectRealTime = (server, nftAddress) => {
             });
 
             await visualVerificationImage.save();
+
+            let verifyCount = 0;
 
             async.timesSeries(donorsArray.length, async (i, next) => {
 
@@ -119,7 +124,16 @@ const connectRealTime = (server, nftAddress) => {
 
                 if (err == "incompatible_data") await socket.emit("upload", `incompatible_data-${i}-${donorsArray.length}`);
 
-                if (!err && visualVerification) await socket.emit("upload", `complete-${i}-${donorsArray.length}`);
+                if (!err && visualVerification) {
+                  verifyCount++;
+                  await socket.emit("upload", `complete-${i}-${donorsArray.length}`)
+                };
+
+                if (verifyCount == 0 && i + 1 == donorsArray.length) {
+                  Image.findByIdAndDelete(visualVerificationImage._id, async (err, image) => {
+                    if (err == "error") await socket.emit("upload", `error-${i}-${donorsArray.length}`);
+                  })
+                }
               })
             })
           }
@@ -133,6 +147,7 @@ const connectRealTime = (server, nftAddress) => {
         key = base64ImageData.key;
         user_info = base64ImageData.user_info;
         bounds = base64ImageData.bounds;
+        location2 = base64ImageData.location2;
       }
     })
 
