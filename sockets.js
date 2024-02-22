@@ -6,6 +6,7 @@ const async = require("async");
 const ActiveItem = require("./models/ActiveItem");
 const { SERVER_URL, PORT } = require("./utils/serverUrl");
 const axios = require("axios");
+const Image = require("./models/Image");
 
 const PATH_NAME = "/realtime";
 
@@ -29,6 +30,7 @@ let key = "";
 let location = {};
 let date = ""
 let user_info = "";
+let bounds = {};
 
 var socketConnection = "";
 
@@ -48,17 +50,26 @@ const connectRealTime = (server, nftAddress) => {
     socket.on("cameraFrame", async (base64ImageData) => {
       if (base64ImageData != "done" && base64ImageData.socketCallKey != "locationAndDate") {
 
+        console.log(base64ImageData.length);
+
         if (location || date || key) {
           location = "";
           date = "";
           key = "";
           user_info = "";
           tempBase64Image = "";
+          bounds = "";
         }
         tempBase64Image += base64ImageData;
 
       } else if (base64ImageData == "done") {
-        // console.log(tempBase64Image);
+
+        // debugging
+        console.log(`Length of image: ${tempBase64Image.length}`);
+        console.log(`Location: ${location.latitude}, ${location.longitude}`);
+        console.log(`user_info: ${user_info}`);
+        console.log(`date: ${date}`);
+        console.log(`key: ${key}`);
         const processedImageData = await processImage(tempBase64Image);
         if (processedImageData != undefined) {
 
@@ -72,6 +83,13 @@ const connectRealTime = (server, nftAddress) => {
             let donorsArray = user_info.split("-")[1];
 
             donorsArray = JSON.parse(donorsArray);
+
+            const visualVerificationImage = new Image({
+              base64Data: tempBase64Image
+            });
+
+            await visualVerificationImage.save();
+
             async.timesSeries(donorsArray.length, async (i, next) => {
 
               const openseaTokenId = parseInt(donorsArray[i]);
@@ -84,12 +102,13 @@ const connectRealTime = (server, nftAddress) => {
                 nftAddress: nftAddress,
                 tokenId: tokenId,
                 openseaTokenId: openseaTokenId,
-                base64_image: tempBase64Image,
+                base64_image: visualVerificationImage._id,
                 buyer: buyer,
                 key: key,
                 location: location,
                 date: date,
-                isUploadedToBlockchain: false
+                isUploadedToBlockchain: false,
+                bounds: bounds
               }
 
               VisualVerification.createVisualVerification(eventData, async (err, visualVerification) => {
@@ -102,17 +121,18 @@ const connectRealTime = (server, nftAddress) => {
 
                 if (!err && visualVerification) await socket.emit("upload", `complete-${i}-${donorsArray.length}`);
               })
-
-
             })
           }
         }
       } else if (base64ImageData.socketCallKey && base64ImageData.socketCallKey == "locationAndDate") {
 
+        console.log(base64ImageData);
+
         location = base64ImageData.location;
         date = base64ImageData.date;
         key = base64ImageData.key;
         user_info = base64ImageData.user_info;
+        bounds = base64ImageData.bounds;
       }
     })
 
