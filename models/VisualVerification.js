@@ -49,6 +49,10 @@ const visualVerificationSchema = new mongoose.Schema({
   },
   transactionHash: {
     type: String
+  },
+  bounds: {
+    type: Object,
+    default: {}
   }
 });
 
