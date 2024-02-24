@@ -335,68 +335,123 @@ activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
     uri: 'https://sandbox-api.iyzipay.com'
   })
 
-  const {s_tokenCounter, donorId, price, cardHolderName, cardNumber, expiryMonth, expiryYear, CVV, tokenName, subcollectionName, tokenId} = body;
+  const {tokenURI, nftAddress, donorId, cardHolderName, cardNumber, expiryMonth, expiryYear, CVV, tokenName, tokenId, charityAddress} = body;
 
-  Donor.findById(donorId, (err, donor) => {
+  ActiveItem.findOne({tokenId: tokenId}, (err, activeItem) => {
+    if (err || !activeItem) return callback("bought_failed");
 
-    console.log(donor)
+    Donor.findById(donorId, (err, donor) => {
 
-    const paymentData = {
-      locale: "TR",
-      conversationId: uuidv4(),
-      price: price.toString(),
-      paidPrice: price.toString(),
-      currency: "TRY",
-      installment: '1',
-      paymentChannel: "WEB",
-      paymentGroup: "PRODUCT",
-      paymentCard: {
-          cardHolderName: cardHolderName,
-          cardNumber: cardNumber,
-          expireMonth: expiryMonth,
-          expireYear: expiryYear,
-          cvc: CVV,
-      },
-      buyer: {
-          id: donor._id,
-          name: donor.name,
-          surname: donor.surname,
-          gsmNumber: donor.phone_number,
-          email: donor.email,
-          identityNumber: donor.national_identification_number,
-          registrationAddress: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:2',
-          ip: '85.34.78.112',
-          city: 'Istanbul',
-          country: 'Turkey',
-      },
-      shippingAddress: {
-          contactName: `${donor.name} ${donor.surname}`,
-          city: 'Istanbul',
-          country: 'Turkey',
-          address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:2'
-      },
-      billingAddress: {
-          contactName: `${donor.name} ${donor.surname}`,
-          city: 'Istanbul',
-          country: 'Turkey',
-          address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:2'
-      },
-      basketItems: [
-          {
-              id: tokenId.toString(),
-              name: tokenName,
-              category1: subcollectionName,
-              itemType: "PHYSICAL",
-              price: price.toString()
-          },
-      ]
-    };  
-    iyzipay.payment.create(paymentData, (err, result) => {
-      if (err) console.error(err);
-      console.log(result);
-      return callback(null, true);
+      if (err || !donor) return callback("bought_failed");
+
+      var request = {
+        locale: Iyzipay.LOCALE.TR,
+        conversationId: uuidv4(),
+        price: activeItem.price.toString(),
+        paidPrice: activeItem.price.toString(),
+        currency: Iyzipay.CURRENCY.TRY,
+        installment: '1',
+        basketId: 'B67832',
+        paymentChannel: Iyzipay.PAYMENT_CHANNEL.WEB,
+        paymentGroup: Iyzipay.PAYMENT_GROUP.PRODUCT,
+        paymentCard: {
+            cardHolderName: cardHolderName,
+            cardNumber: cardNumber,
+            expireMonth: expiryMonth,
+            expireYear: expiryYear,
+            cvc: CVV,
+            registerCard: '0'
+        },
+        buyer: {
+            id: 'BY789',
+            name: 'John',
+            surname: 'Doe',
+            gsmNumber: '+905350000000',
+            email: 'email@email.com',
+            identityNumber: '74300864791',
+            lastLoginDate: '2015-10-05 12:43:35',
+            registrationDate: '2013-04-21 15:12:09',
+            registrationAddress: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+            ip: '85.34.78.112',
+            city: 'Istanbul',
+            country: 'Turkey',
+            zipCode: '34732'
+        },
+        shippingAddress: {
+            contactName: 'Jane Doe',
+            city: 'Istanbul',
+            country: 'Turkey',
+            address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+            zipCode: '34742'
+        },
+        billingAddress: {
+            contactName: 'Jane Doe',
+            city: 'Istanbul',
+            country: 'Turkey',
+            address: 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+            zipCode: '34742'
+        },
+        basketItems: [
+            {
+                id: uuidv4(),
+                name: tokenName,
+                category1: 'Ledgerise',
+                category2: 'Donate',
+                itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
+                price: activeItem.price.toString()
+            }
+          ]
+      };
+      
+      iyzipay.payment.create(request, async function (err, result) {
+          if (!err && result.status == "success") {
+            const marketplace = new ethers.Contract(marketplaceAddress, abi, signer);
+
+            const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
+              nftAddress,
+              tokenId,
+              charityAddress,
+              tokenURI,
+              activeItem.price,
+              donor.school_number
+            )
+          
+            const buyItemTxReceipt = await buyItemTx.wait(1);
+
+            const args = buyItemTxReceipt.events[2].args;
+
+            activeItem.buyer = donor.school_number;
+            activeItem.availableEditions = activeItem.availableEditions - 1;
+
+            const currentDate = new Date();
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+
+            const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+            const historyObject = {
+              key: "buy",
+              date: formattedDate,
+              price: activeItem.price,
+              buyer: donor.school_number,
+              openseaTokenId: parseInt(args.openseaTokenId),
+              transactionHash: buyItemTxReceipt.transactionHash
+            }
+
+            activeItem.history.push(historyObject);
+
+            Subcollection.findOne({ subcollectionId: activeItem.subcollectionId }, (err, subcollection) => {
+              if (err) return callback("bought_failed");
+              subcollection.totalRaised = (parseInt(subcollection.totalRaised) + parseInt(activeItem.price)).toString();
+
+              activeItem.save();
+              subcollection.save();
+              return callback(null, activeItem);
+            })
+          } else {
+            return callback("bought_failed");
+          }
+      });
     })
-    // Save to blockchain
   })
 }
 

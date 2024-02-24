@@ -19,14 +19,9 @@ module.exports = (callback) => {
       async.timesSeries(visualVerifications.length, async (i, next) => {
         const visualVerification = visualVerifications[i];
 
-        Image.findById(visualVerification.base64_image, async (err, image) => {
-          if (err) return callback(err);
-
-          const imageData = image.base64Data;
-
           const body = {
             name: `${visualVerification.buyer}_${visualVerification.openseaTokenId}_${visualVerification.key}`,
-            data: Buffer.from(imageData, "base64")
+            data: Buffer.from(visualVerification.base64_image, "base64")
           }
 
           if (!visualVerification.visualVerificationTokenId) {
@@ -70,7 +65,6 @@ module.exports = (callback) => {
           eventDataArray.push(realItemHistoryData);
           visualVerification.save();
           return next();
-        })
       }, (err) => {
         return callback(null, eventDataArray)
       });

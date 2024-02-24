@@ -1,4 +1,5 @@
-[{
+[
+  {
     "inputs": [],
     "name": "NftMarketplace__DecimalsIncorrect",
     "type": "error"
@@ -9,7 +10,8 @@
     "type": "error"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -29,7 +31,8 @@
     "type": "error"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -69,7 +72,8 @@
     "type": "error"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -94,26 +98,6 @@
     "type": "error"
   },
   {
-    "inputs": [{
-        "internalType": "address",
-        "name": "nftAddress",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "fiatAmount",
-        "type": "uint256"
-      }
-    ],
-    "name": "NftMarketplace__PriceNotMetFiat",
-    "type": "error"
-  },
-  {
     "inputs": [],
     "name": "NftMarketplace__RouteFormatIncorrect",
     "type": "error"
@@ -125,7 +109,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "address",
         "name": "bidder",
@@ -161,7 +146,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "nftAddress",
@@ -215,7 +201,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "nftAddress",
@@ -245,18 +232,21 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
-      "indexed": true,
-      "internalType": "address",
-      "name": "creatorAddress",
-      "type": "address"
-    }],
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creatorAddress",
+        "type": "address"
+      }
+    ],
     "name": "CreatorAdded",
     "type": "event"
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "string",
         "name": "buyer",
@@ -292,7 +282,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "seller",
@@ -316,7 +307,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "seller",
@@ -365,8 +357,10 @@
         "type": "uint256"
       },
       {
-        "components": [{
-            "components": [{
+        "components": [
+          {
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -387,7 +381,8 @@
             "type": "tuple"
           },
           {
-            "components": [{
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -408,7 +403,8 @@
             "type": "tuple"
           },
           {
-            "components": [{
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -440,7 +436,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "previousOwner",
@@ -458,7 +455,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "nftAddress",
@@ -476,7 +474,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "string",
         "name": "reporter",
@@ -505,18 +504,21 @@
     "type": "event"
   },
   {
-    "inputs": [{
-      "internalType": "address",
-      "name": "creatorAddress",
-      "type": "address"
-    }],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "creatorAddress",
+        "type": "address"
+      }
+    ],
     "name": "addCreator",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -548,7 +550,8 @@
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -569,11 +572,6 @@
         "type": "string"
       },
       {
-        "internalType": "contract AggregatorV3Interface",
-        "name": "priceFeed",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
         "name": "fiatAmount",
         "type": "uint256"
@@ -590,7 +588,8 @@
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -607,13 +606,16 @@
     "type": "function"
   },
   {
-    "inputs": [{
-      "internalType": "bytes",
-      "name": "",
-      "type": "bytes"
-    }],
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
+    ],
     "name": "checkUpkeep",
-    "outputs": [{
+    "outputs": [
+      {
         "internalType": "bool",
         "name": "upkeepNeeded",
         "type": "bool"
@@ -628,7 +630,8 @@
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -640,109 +643,121 @@
       }
     ],
     "name": "getAuctionByParams",
-    "outputs": [{
-      "components": [{
-          "internalType": "address",
-          "name": "nftAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "seller",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "currentBidding",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "interval",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "charityAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "currentBidder",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "startTimeStamp",
-          "type": "uint256"
-        },
-        {
-          "internalType": "enum Marketplace.AuctionState",
-          "name": "state",
-          "type": "uint8"
-        },
-        {
-          "internalType": "string",
-          "name": "tokenUri",
-          "type": "string"
-        },
-        {
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        }
-      ],
-      "internalType": "struct Marketplace.Auction",
-      "name": "auction",
-      "type": "tuple"
-    }],
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "nftAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "seller",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "currentBidding",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "interval",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "charityAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "currentBidder",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "startTimeStamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum Marketplace.AuctionState",
+            "name": "state",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "tokenUri",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct Marketplace.Auction",
+        "name": "auction",
+        "type": "tuple"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{
-      "internalType": "uint256",
-      "name": "index",
-      "type": "uint256"
-    }],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      }
+    ],
     "name": "getAuctionState",
-    "outputs": [{
-      "internalType": "enum Marketplace.AuctionState",
-      "name": "",
-      "type": "uint8"
-    }],
+    "outputs": [
+      {
+        "internalType": "enum Marketplace.AuctionState",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "getLastTimestamp",
-    "outputs": [{
-      "internalType": "uint256",
-      "name": "",
-      "type": "uint256"
-    }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "getListTokenCounter",
-    "outputs": [{
-      "internalType": "uint256",
-      "name": "",
-      "type": "uint256"
-    }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -754,121 +769,129 @@
       }
     ],
     "name": "getListing",
-    "outputs": [{
-      "components": [{
-          "internalType": "uint256",
-          "name": "uniqueListingId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "seller",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "price",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "charityAddress",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "creator",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "subcollectionId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "availableEditions",
-          "type": "uint256"
-        },
-        {
-          "components": [{
-              "components": [{
-                  "internalType": "uint256",
-                  "name": "latitude",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "longitude",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "decimals",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct Marketplace.Location",
-              "name": "stampLocation",
-              "type": "tuple"
-            },
-            {
-              "components": [{
-                  "internalType": "uint256",
-                  "name": "latitude",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "longitude",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "decimals",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct Marketplace.Location",
-              "name": "shipLocation",
-              "type": "tuple"
-            },
-            {
-              "components": [{
-                  "internalType": "uint256",
-                  "name": "latitude",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "longitude",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "decimals",
-                  "type": "uint256"
-                }
-              ],
-              "internalType": "struct Marketplace.Location",
-              "name": "deliverLocation",
-              "type": "tuple"
-            }
-          ],
-          "internalType": "struct Marketplace.Route",
-          "name": "route",
-          "type": "tuple"
-        }
-      ],
-      "internalType": "struct Marketplace.Listing",
-      "name": "",
-      "type": "tuple"
-    }],
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "uniqueListingId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "seller",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "price",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "charityAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "creator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "subcollectionId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "availableEditions",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "latitude",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "longitude",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "decimals",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct Marketplace.Location",
+                "name": "stampLocation",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "latitude",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "longitude",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "decimals",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct Marketplace.Location",
+                "name": "shipLocation",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "uint256",
+                    "name": "latitude",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "longitude",
+                    "type": "uint256"
+                  },
+                  {
+                    "internalType": "uint256",
+                    "name": "decimals",
+                    "type": "uint256"
+                  }
+                ],
+                "internalType": "struct Marketplace.Location",
+                "name": "deliverLocation",
+                "type": "tuple"
+              }
+            ],
+            "internalType": "struct Marketplace.Route",
+            "name": "route",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct Marketplace.Listing",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -880,63 +903,68 @@
       }
     ],
     "name": "getRealItemHistory",
-    "outputs": [{
-      "components": [{
-          "internalType": "string",
-          "name": "key",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "buyer",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "date",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "openseaTokenId",
-          "type": "uint256"
-        },
-        {
-          "components": [{
-              "internalType": "uint256",
-              "name": "latitude",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "longitude",
-              "type": "uint256"
-            },
-            {
-              "internalType": "uint256",
-              "name": "decimals",
-              "type": "uint256"
-            }
-          ],
-          "internalType": "struct Marketplace.Location",
-          "name": "location",
-          "type": "tuple"
-        },
-        {
-          "internalType": "uint256",
-          "name": "visualVerificationTokenId",
-          "type": "uint256"
-        }
-      ],
-      "internalType": "struct Marketplace.RealItemHistory[]",
-      "name": "",
-      "type": "tuple[]"
-    }],
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "buyer",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "date",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "openseaTokenId",
+            "type": "uint256"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "latitude",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "longitude",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "decimals",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct Marketplace.Location",
+            "name": "location",
+            "type": "tuple"
+          },
+          {
+            "internalType": "uint256",
+            "name": "visualVerificationTokenId",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Marketplace.RealItemHistory[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -972,8 +1000,10 @@
         "type": "uint256"
       },
       {
-        "components": [{
-            "components": [{
+        "components": [
+          {
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -994,7 +1024,8 @@
             "type": "tuple"
           },
           {
-            "components": [{
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -1015,7 +1046,8 @@
             "type": "tuple"
           },
           {
-            "components": [{
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -1049,27 +1081,32 @@
   {
     "inputs": [],
     "name": "owner",
-    "outputs": [{
-      "internalType": "address",
-      "name": "",
-      "type": "address"
-    }],
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{
-      "internalType": "bytes",
-      "name": "performData",
-      "type": "bytes"
-    }],
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "performData",
+        "type": "bytes"
+      }
+    ],
     "name": "performUpkeep",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
@@ -1081,11 +1118,13 @@
       }
     ],
     "name": "priorConversion",
-    "outputs": [{
-      "internalType": "uint256",
-      "name": "",
-      "type": "uint256"
-    }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -1097,7 +1136,8 @@
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "string",
         "name": "reporter",
         "type": "string"
@@ -1119,13 +1159,16 @@
     "type": "function"
   },
   {
-    "inputs": [{
-      "internalType": "uint256",
-      "name": "",
-      "type": "uint256"
-    }],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "name": "s_auctions",
-    "outputs": [{
+    "outputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -1185,22 +1228,27 @@
     "type": "function"
   },
   {
-    "inputs": [{
-      "internalType": "address",
-      "name": "",
-      "type": "address"
-    }],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "name": "s_creators",
-    "outputs": [{
-      "internalType": "bool",
-      "name": "",
-      "type": "bool"
-    }],
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "",
         "type": "address"
@@ -1212,7 +1260,8 @@
       }
     ],
     "name": "s_listings",
-    "outputs": [{
+    "outputs": [
+      {
         "internalType": "uint256",
         "name": "uniqueListingId",
         "type": "uint256"
@@ -1248,8 +1297,10 @@
         "type": "uint256"
       },
       {
-        "components": [{
-            "components": [{
+        "components": [
+          {
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -1270,7 +1321,8 @@
             "type": "tuple"
           },
           {
-            "components": [{
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -1291,7 +1343,8 @@
             "type": "tuple"
           },
           {
-            "components": [{
+            "components": [
+              {
                 "internalType": "uint256",
                 "name": "latitude",
                 "type": "uint256"
@@ -1321,28 +1374,35 @@
     "type": "function"
   },
   {
-    "inputs": [{
-      "internalType": "address",
-      "name": "",
-      "type": "address"
-    }],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "name": "s_proceeds",
-    "outputs": [{
-      "internalType": "uint256",
-      "name": "",
-      "type": "uint256"
-    }],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
-    "inputs": [{
-      "internalType": "uint256",
-      "name": "",
-      "type": "uint256"
-    }],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "name": "s_reports",
-    "outputs": [{
+    "outputs": [
+      {
         "internalType": "string",
         "name": "reporter",
         "type": "string"
@@ -1362,7 +1422,8 @@
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -1419,7 +1480,8 @@
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -1456,18 +1518,21 @@
     "type": "function"
   },
   {
-    "inputs": [{
-      "internalType": "address",
-      "name": "newOwner",
-      "type": "address"
-    }],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
     "name": "transferOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"
@@ -1484,7 +1549,8 @@
     "type": "function"
   },
   {
-    "inputs": [{
+    "inputs": [
+      {
         "internalType": "address",
         "name": "nftAddress",
         "type": "address"

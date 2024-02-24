@@ -87,14 +87,6 @@ const connectRealTime = (server, nftAddress) => {
 
             donorsArray = JSON.parse(donorsArray);
 
-            const visualVerificationImage = new Image({
-              base64Data: tempBase64Image
-            });
-
-            await visualVerificationImage.save();
-
-            let verifyCount = 0;
-
             async.timesSeries(donorsArray.length, async (i, next) => {
 
               const openseaTokenId = parseInt(donorsArray[i]);
@@ -107,7 +99,7 @@ const connectRealTime = (server, nftAddress) => {
                 nftAddress: nftAddress,
                 tokenId: tokenId,
                 openseaTokenId: openseaTokenId,
-                base64_image: visualVerificationImage._id,
+                base64_image: tempBase64Image,
                 buyer: buyer,
                 key: key,
                 location: location,
@@ -128,12 +120,6 @@ const connectRealTime = (server, nftAddress) => {
                   verifyCount++;
                   await socket.emit("upload", `complete-${i}-${donorsArray.length}`)
                 };
-
-                if (verifyCount == 0 && i + 1 == donorsArray.length) {
-                  Image.findByIdAndDelete(visualVerificationImage._id, async (err, image) => {
-                    if (err == "error") await socket.emit("upload", `error-${i}-${donorsArray.length}`);
-                  })
-                }
               })
             })
           }
