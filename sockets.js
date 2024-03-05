@@ -10,12 +10,13 @@ const Image = require("./models/Image");
 
 const PATH_NAME = "/realtime";
 
-const processImage = (imageBase64) => {
+const processImage = (imageBase64, bounds) => {
   return new Promise((resolve, reject) => {
     // send request to python server
     const url = `${SERVER_URL}:${PORT}/real-time`;
     axios.post(url, {
-      image: imageBase64
+      image: imageBase64,
+      bounds: bounds
     })
       .then(res => {
         const data = res.data.trim();
@@ -31,7 +32,6 @@ let location = {};
 let date = ""
 let user_info = "";
 let bounds = {};
-let location2 = {};
 
 var socketConnection = "";
 
@@ -51,7 +51,7 @@ const connectRealTime = (server, nftAddress) => {
     socket.on("cameraFrame", async (base64ImageData) => {
       if (base64ImageData != "done" && base64ImageData.socketCallKey != "locationAndDate") {
 
-        console.log(base64ImageData.length);
+        // console.log(base64ImageData.length);
 
         if (location || date || key) {
           location = "";
@@ -60,20 +60,19 @@ const connectRealTime = (server, nftAddress) => {
           user_info = "";
           tempBase64Image = "";
           bounds = "";
-          location2 = "";
         }
         tempBase64Image += base64ImageData;
 
       } else if (base64ImageData == "done") {
 
-        // debugging
-        console.log(`Length of image: ${tempBase64Image.length}`);
-        console.log(`Location: ${location.latitude}, ${location.longitude}`);
-        console.log(`Location 2: ${location2.latitude}, ${location2.longitude}`);
-        console.log(`user_info: ${user_info}`);
-        console.log(`date: ${date}`);
-        console.log(`key: ${key}`);
-        const processedImageData = await processImage(tempBase64Image);
+        // // debugging
+        // console.log(`Length of image: ${tempBase64Image.length}`);
+        // console.log(`Location: ${location.latitude}, ${location.longitude}`);
+        // console.log(`Location 2: ${location2.latitude}, ${location2.longitude}`);
+        // console.log(`user_info: ${user_info}`);
+        // console.log(`date: ${date}`);
+        // console.log(`key: ${key}`);
+        const processedImageData = await processImage(tempBase64Image, bounds);
         if (processedImageData != undefined) {
 
           await socket.emit('processedImage', JSON.parse(processedImageData));
@@ -117,7 +116,6 @@ const connectRealTime = (server, nftAddress) => {
                 if (err == "incompatible_data") await socket.emit("upload", `incompatible_data-${i}-${donorsArray.length}`);
 
                 if (!err && visualVerification) {
-                  verifyCount++;
                   await socket.emit("upload", `complete-${i}-${donorsArray.length}`)
                 };
               })
@@ -126,14 +124,13 @@ const connectRealTime = (server, nftAddress) => {
         }
       } else if (base64ImageData.socketCallKey && base64ImageData.socketCallKey == "locationAndDate") {
 
-        console.log(base64ImageData);
+        // console.log(base64ImageData);
 
         location = base64ImageData.location;
         date = base64ImageData.date;
         key = base64ImageData.key;
         user_info = base64ImageData.user_info;
-        bounds = base64ImageData.bounds;
-        location2 = base64ImageData.location2;
+        bounds = base64ImageData.barcode_bounds;
       }
     })
 
