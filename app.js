@@ -18,7 +18,7 @@ const { storeImages, storeUriMetadata } = require("./utils/uploadToPinata");
 const TokenUri = require("./models/tokenUri");
 const async = require("async");
 const networkMapping = require("./constants/networkMapping.json");
-const { AES, enc } = require("crypto-js");
+const { SERVER_URL, PORT } = require("./utils/serverUrl");
 
 const session = require("express-session");
 
@@ -62,7 +62,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Replace with your Next.js domain
+  res.header('Access-Control-Allow-Origin', `${SERVER_URL}:${PORT}`); // Replace with your Next.js domain
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
