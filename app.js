@@ -79,7 +79,8 @@ function checkForBuyerPresence(buyerAddress, eachCollaboratorSet) {
 }
 
 app.get("/get-asset", (req, res) => {
-  ActiveItem.findOne({ tokenId: req.query.tokenId }, (err, activeItem) => {
+
+  ActiveItem.findOne({ tokenId: req.query.tokenId, subcollectionId: req.query.subcollectionId }, (err, activeItem) => {
     const groupedObjects = {};
 
     async.timesSeries(activeItem.real_item_history.length, (i, next) => {
@@ -327,11 +328,11 @@ app.get("/get-random-featured-nft", (req, res) => {
           collectionName: collection.collectionName,
           charityAddress: collection.charityAddress,
           nftAddress: activeItems[randomIndex].nftAddress,
-          totalDonated: activeItems[randomIndex].history.filter(historyEvent => historyEvent.key == "buy").length
+          totalDonated: activeItems[randomIndex].history.filter(historyEvent => historyEvent.key == "buy").length,
+          subcollectionId: activeItems[randomIndex].subcollectionId
         }
       });
     })
-
   })
 })
 

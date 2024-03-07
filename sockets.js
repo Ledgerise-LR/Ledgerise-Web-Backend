@@ -1,12 +1,10 @@
 
 const socketIo = require("socket.io");
-const { spawn } = require("child_process");
 const VisualVerification = require("./models/VisualVerification");
 const async = require("async");
 const ActiveItem = require("./models/ActiveItem");
 const { SERVER_URL, PORT } = require("./utils/serverUrl");
 const axios = require("axios");
-const Image = require("./models/Image");
 
 const PATH_NAME = "/realtime";
 
@@ -32,6 +30,7 @@ let location = {};
 let date = ""
 let user_info = "";
 let bounds = {};
+let subcollectionId = "";
 
 var socketConnection = "";
 
@@ -60,6 +59,7 @@ const connectRealTime = (server, nftAddress) => {
           user_info = "";
           tempBase64Image = "";
           bounds = "";
+          subcollectionId = "";
         }
         tempBase64Image += base64ImageData;
 
@@ -90,7 +90,7 @@ const connectRealTime = (server, nftAddress) => {
 
               const openseaTokenId = parseInt(donorsArray[i]);
 
-              const item = await ActiveItem.findOne({ tokenId: tokenId }).select({ history: { $elemMatch: { openseaTokenId: openseaTokenId } } });
+              const item = await ActiveItem.findOne({ tokenId: tokenId, subcollectionId: subcollectionId }).select({ history: { $elemMatch: { openseaTokenId: openseaTokenId } } });
 
               const buyer = item.history[0].buyer;
 
@@ -131,6 +131,7 @@ const connectRealTime = (server, nftAddress) => {
         key = base64ImageData.key;
         user_info = base64ImageData.user_info;
         bounds = base64ImageData.barcode_bounds;
+        subcollectionId = base64ImageData.subcollectionId;
       }
     })
 
