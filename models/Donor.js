@@ -4,10 +4,10 @@ const mongoose = require("mongoose");
 
 const donorSchema = new mongoose.Schema({
 
-  school: {
-    type: String,
-    default: "UAA"
-  },
+  // school: {
+  //   type: String,
+  //   default: "UAA"
+  // },
 
   email: {
     type: String,
@@ -17,7 +17,7 @@ const donorSchema = new mongoose.Schema({
   },
 
   school_number: {
-    type: Number,
+    type: String,
     unique: true,
     required: true
   },
@@ -28,27 +28,27 @@ const donorSchema = new mongoose.Schema({
     required: true
   },
 
-  phone_number: {
-    type: String,
-    trim: true,
-    required: true,
-    unique: true
-  },
+  // phone_number: {
+  //   type: String,
+  //   trim: true,
+  //   required: true,
+  //   unique: true
+  // },
 
-  national_identification_number: {
-    type: String,
-    trim: true,
-    required: true
-  },
+  // national_identification_number: {
+  //   type: String,
+  //   trim: true,
+  //   required: true
+  // },
 
-  name: {
-    type: String,
-    required: true
-  },
-  surname: {
-    type: String,
-    required: true
-  }
+  // name: {
+  //   type: String,
+  //   required: true
+  // },
+  // surname: {
+  //   type: String,
+  //   required: true
+  // }
 });
 
 donorSchema.statics.createNewDonor = function (body, callback) {
