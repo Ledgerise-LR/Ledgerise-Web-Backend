@@ -324,6 +324,54 @@ activeItemSchema.statics.buyItem = async function (body, callback) {
 
 }
 
+activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) {
+
+  ActiveItem.findOne({tokenId: body.tokenId}, async (err, activeItem) => {
+
+    const marketplace = new ethers.Contract(marketplaceAddress, abi, signer);
+
+    const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
+      activeItem.nftAddress,
+      activeItem.tokenId,
+      activeItem.charityAddress,
+      activeItem.tokenUri,
+      activeItem.price,
+      body.school_number
+    )
+
+    const buyItemTxReceipt = await buyItemTx.wait(1);
+
+    const args = buyItemTxReceipt.events[2].args;
+
+    activeItem.buyer = body.school_number;
+    activeItem.availableEditions = activeItem.availableEditions - 1;
+
+    const currentDate = new Date();
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+
+    const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+    const historyObject = {
+      key: "buy",
+      date: formattedDate,
+      price: activeItem.price,
+      buyer: body.school_number,
+      openseaTokenId: parseInt(args.openseaTokenId),
+      transactionHash: buyItemTxReceipt.transactionHash
+    }
+
+    activeItem.history.push(historyObject);
+
+    Subcollection.findOne({ subcollectionId: activeItem.subcollectionId }, (err, subcollection) => {
+      if (err) return callback("bought_failed");
+      subcollection.totalRaised = (parseInt(subcollection.totalRaised) + parseInt(activeItem.price)).toString();
+
+      activeItem.save();
+      subcollection.save();
+      return callback(null, activeItem);
+    })
+  })
+}
 
 activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
 

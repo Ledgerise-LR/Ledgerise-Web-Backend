@@ -490,6 +490,14 @@ app.post("/donate/payment/TRY", async (req, res) => {
   })
 })
 
+app.post("/donate/payment/already_bought", async (req, res) => {
+
+  ActiveItem.buyItemAlreadyBought(req.body, (err, activeItem) => {
+    if (err) return res.json({ success: false, err });
+    return res.status(200).json({ success: true, data: activeItem });
+  })
+})
+
 
 app.get("/reports/get-past", (req, res) => {
   Report.find({ reporter: req.query.reporter }, (err, reports) => {
