@@ -52,12 +52,17 @@ const donorSchema = new mongoose.Schema({
 });
 
 donorSchema.statics.createNewDonor = function (body, callback) {
-  const newDonor = new Donor(body);
-  if (newDonor) {
-    newDonor.save();
-    return callback(null, newDonor);
-  }
-  return callback("bad_request");
+  Donor.findOne({email: body.email}, (err, donor) => {
+    if (donor) return callback("duplicate_key");
+    if (!donor) {
+      const newDonor = new Donor(body);
+      if (newDonor) {
+        newDonor.save();
+        return callback(null, newDonor);
+      }
+      return callback("bad_request");  
+    }
+  })
 }
 
 donorSchema.statics.loginDonor = function (body, callback) {
