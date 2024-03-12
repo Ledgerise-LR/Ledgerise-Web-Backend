@@ -324,6 +324,7 @@ app.get("/get-random-featured-nft", (req, res) => {
         data: asset = {
           tokenId: activeItems[randomIndex].tokenId,
           tokenUri: activeItems[randomIndex].tokenUri,
+          price: activeItems[randomIndex].price,
           totalRaised: collection.totalRaised,
           collectionName: collection.collectionName,
           charityAddress: collection.charityAddress,
