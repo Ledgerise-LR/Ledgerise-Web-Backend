@@ -326,7 +326,7 @@ app.get("/get-random-featured-nft", (req, res) => {
           tokenUri: activeItems[randomIndex].tokenUri,
           price: activeItems[randomIndex].price,
           totalRaised: collection.totalRaised,
-          collectionName: collection.collectionName,
+          collectionName: collection.name,
           charityAddress: collection.charityAddress,
           nftAddress: activeItems[randomIndex].nftAddress,
           totalDonated: activeItems[randomIndex].history.filter(historyEvent => historyEvent.key == "buy").length,
