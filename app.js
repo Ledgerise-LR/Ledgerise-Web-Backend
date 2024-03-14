@@ -425,7 +425,7 @@ app.post("/admin/pinata/upload", (req, res) => {
     for (let i = 0; i < attributesString.split(",").length; i++) {
       const array = attributesString.split(",");
       const key = array[i].split(":")[0];
-      const value = parseInt(array[i].split(":")[1]);
+      const value = parseFloat(array[i].split(":")[1]);
 
       const tempAttributeObject = {
         trait_type: key,
