@@ -273,6 +273,38 @@ app.get("/get-all-collections", (req, res) => {
   })
 })
 
+app.get("/company/get-all-collections", (req, res) => {
+  subcollection.find({ companyCode: req.session.company.companyCode }, (err, subcollections) => {
+
+    let resArray = [];
+
+    async.timesSeries(subcollections.length, (i, next) => {
+      const eachSubcollection = subcollections[i];
+
+      Company.findOne({ code: eachSubcollection.companyCode }, (err, company) => {
+        if (err || !company) return res.json({ success: false, err: err });
+
+        const data = {
+          itemId: eachSubcollection.itemId,
+          name: eachSubcollection.name,
+          image: eachSubcollection.image,
+          totalRaised: eachSubcollection.totalRaised,
+          charityAddress: company.charityAddress,
+          charityName: company.name,
+          companyImage: company.image,
+        }
+
+        resArray.push(data);
+
+        next();
+      })
+    }, (err) => {
+      if (err) return res.json({ success: false, err: err });
+      res.status(200).json({ subcollections: resArray });
+    })
+  })
+})
+
 app.get("/get-single-collection", (req, res) => {
   subcollection.findOne({ itemId: req.query.id }, (err, subcollection) => {
     res.status(200).json({ subcollection: subcollection });
