@@ -573,7 +573,10 @@ app.post("/auth/company/create", (req, res) => {
       code: fields.code[0],
       email: fields.email[0],
       password: fields.password[0],
-      charityAddress: fields.charityAddress[0]
+      charityAddress: fields.charityAddress[0],
+      IBAN: fields.IBAN[0],
+      receipientName: fields.receipientName[0],
+      bankName: fields.bankName[0],
     }
 
     Company.createNewCompany(body, (err, company) => {

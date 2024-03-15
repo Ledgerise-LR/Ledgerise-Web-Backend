@@ -27,7 +27,6 @@ const companySchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    unique: true,
     trim: true
   },
 
@@ -40,6 +39,21 @@ const companySchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  },
+
+  IBAN: {
+    type: String,
+    default: "TR"
+  },
+
+  receipientName: {
+    type: String,
+    default: ""
+  },
+
+  bankName: {
+    type: String,
+    default: ""
   }
 
 });
