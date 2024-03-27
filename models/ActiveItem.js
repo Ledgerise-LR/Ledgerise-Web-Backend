@@ -327,7 +327,7 @@ activeItemSchema.statics.buyItem = async function (body, callback) {
 activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) {
 
   ActiveItem.findOne({tokenId: body.tokenId}, async (err, activeItem) => {
-
+    
     const marketplace = new ethers.Contract(marketplaceAddress, abi, signer);
 
     const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(

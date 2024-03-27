@@ -663,6 +663,15 @@ app.post("/company/get-company-from-code", (req, res) => {
 })
 
 
+app.post("/company/get-all-items", (req, res) => {
+  
+  Company.getAllItems(req.body, (err, assets) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.json({ success: true, assets: assets });
+  })
+})
+
+
 server.listen(PORT, async () => {
 
   updateAttributes();
@@ -673,14 +682,12 @@ server.listen(PORT, async () => {
 
   handleAuctionCreated();
 
-  setInterval(() => {
-    verifyBlockchain();
-  }, 60000);
-
   connectRealTime(server, nftAddress);
   receiveImage(app);
 
   console.log("Server is listening on port", PORT);
+
+  verifyBlockchain();
 })
 
 
