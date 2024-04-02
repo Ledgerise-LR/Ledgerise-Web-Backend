@@ -34,7 +34,9 @@ module.exports = (callback) => {
               visualVerification.openseaTokenId,
               visualVerification.tokenUri,
               visualVerification.buyer,
-              visualVerification.key
+              visualVerification.key,
+              visualVerification.nftAddress,
+              visualVerification.tokenId
             );
 
             visualVerification.visualVerificationTokenId = tokenId;

@@ -15,6 +15,11 @@ const subcollectionSchema = new mongoose.Schema({
     trim: true
   },
 
+  nftAddress: {
+    type: String,
+    default: ""
+  },
+
   properties: [
     property = {
       type: String
@@ -26,6 +31,21 @@ const subcollectionSchema = new mongoose.Schema({
   totalRaised: {
     type: String,
     default: "0"
+  },
+
+  marketplaceAddress: {
+    type: String,
+    default: ""
+  },
+
+  ledgeriseLensAddress: {
+    type: String,
+    default: ""
+  },
+
+  providerUrl: {
+    type: String,
+    default: ""
   }
 });
 

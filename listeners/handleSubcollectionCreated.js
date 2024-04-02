@@ -6,14 +6,14 @@ const { getIdFromParams } = require("../utils/getIdFromParams");
 require("dotenv").config();
 
 const mainCollectionAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
+const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
+const ledgeriseLensAddress = networkMapping["LedgeriseLens"][process.env.ACTIVE_CHAIN_ID];
 
 const provider = new ethers.providers.JsonRpcProvider(process.env.URL);
 
 module.exports = async () => {
   const mainCollection = new ethers.Contract(mainCollectionAddress, abi, provider);
   mainCollection.on("SubcollectionCreated", (id, name, charityAddress, properties) => {
-
-    console.log("got it");
 
     Subcollection.findOne({ itemId: id }, (err, subcollection) => {
       if (err || subcollection) {
@@ -25,7 +25,11 @@ module.exports = async () => {
         const body = {
           itemId: id.toString(),
           name: name.toString(),
-          charityAddress: charityAddress.toString()
+          charityAddress: charityAddress.toString(),
+          nftAddress: mainCollectionAddress,
+          marketplaceAddress: marketplaceAddress,
+          ledgeriseLensAddress: ledgeriseLensAddress,
+          providerUrl: process.env.URL
         }
         Subcollection.createSubcollection(body, (err, newSubcollection) => {
           if (err) {

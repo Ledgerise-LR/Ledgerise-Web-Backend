@@ -53,11 +53,15 @@ const visualVerificationSchema = new mongoose.Schema({
   bounds: {
     type: Object,
     default: {}
+  },
+  nftAddress: {
+    type: String,
+    default: ""
   }
 });
 
 visualVerificationSchema.statics.createVisualVerification = function (body, callback) {
-  visualVerification.find({ buyer: body.buyer, openseaTokenId: body.openseaTokenId, key: body.key }, (err, visualVerifications) => {
+  visualVerification.find({ buyer: body.buyer, openseaTokenId: body.openseaTokenId, key: body.key, nftAddress: body.nftAddress }, (err, visualVerifications) => {
     if (err) return callback("error");
     if (visualVerifications.length > 0) return callback("already_verified");
 

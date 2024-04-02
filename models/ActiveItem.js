@@ -8,12 +8,32 @@ const saveToBlockchain = require("../listeners/saveRealItemHistory");
 const visualVerification = require("./VisualVerification");
 const Subcollection = require("./Subcollection");
 const Iyzipay = require("iyzipay");
+const NeedDetail = require("./NeedDetail");
 const { getIdFromParams } = require("../utils/getIdFromParams");
 const Donor = require("./Donor");
 const {v4: uuidv4} = require("uuid");
 
 require("dotenv").config();
 
+const zeroRoute = {
+  stampLocation: {
+    latitude: 0,
+    longitude: 0,
+    decimals: 0
+  },
+
+  shipLocation: {
+    latitude: 0,
+    longitude: 0,
+    decimals: 0
+  },
+
+  deliverLocation: {
+    latitude: 0,
+    longitude: 0,
+    decimals: 0
+  }
+}
 
 const activeItemSchema = new mongoose.Schema({
   itemId: {
@@ -117,6 +137,31 @@ const activeItemSchema = new mongoose.Schema({
 
   route: {
     type: Object,
+  },
+
+  listingType: {
+    type: String,
+    enum: ["ACTIVE_ITEM", "NEED_ITEM"]
+  },
+
+  needDetails: {
+    type: String,
+    default: ""
+  },
+
+  marketplaceAddress: {
+    type: String,
+    default: ""
+  },
+
+  ledgeriseLensAddress: {
+    type: String,
+    default: ""
+  },
+
+  listTransactionHash: {
+    type: String,
+    default: ""
   }
 });
 
@@ -168,6 +213,7 @@ activeItemSchema.statics.sortDefault = function (body, callback) {
   const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter);
   ActiveItem.find({
     subcollectionId: body.subcollectionId,
+    nftAddress: body.nftAddress
   }, (err, activeItems) => {
 
     if (err) return callback(err);
@@ -275,95 +321,262 @@ const signer = new ethers.Wallet(
   provider
 )
 
+activeItemSchema.statics.listItem = async function (body, callback) {
+
+  Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId }, async (err, subcollection) => {
+    
+    const marketplaceAddress = subcollection.marketplaceAddress;
+    const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
+
+    const provider = new ethers.providers.WebSocketProvider(subcollection.providerUrl);
+    const signer = new ethers.Wallet(
+      `0x${process.env.OWNER_PRIVATE_KEY}`,
+      provider
+    )
+
+    const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+
+    const tokenCounter = await marketplace.getListTokenCounter();
+
+    const listItemBody = {
+      itemId: `${subcollection.nftAddress}-${tokenCounter}`,
+      seller: "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
+      charityAddress: body.charityAddress,
+      buyer: "0x00000",
+      nftAddress: subcollection.nftAddress,
+      tokenId: tokenCounter,
+      price: body.price,
+      subcollectionId: subcollection.itemId,
+      tokenUri: body.tokenUri,
+      availableEditions: body.availableEditions,
+      route: body.route,
+      listingType: "ACTIVE_ITEM",
+      needDetails: "",
+      marketplaceAddress: subcollection.marketplaceAddress,
+      ledgeriseLensAddress: subcollection.ledgeriseLensAddress
+    };
+
+    const newActiveItem = new ActiveItem(listItemBody);
+    if (newActiveItem) {
+      const listItemTx = await marketplace.listItem(
+        subcollection.nftAddress,
+        tokenCounter,
+        body.price,
+        body.charityAddress,
+        body.tokenUri,
+        subcollection.itemId,
+        body.availableEditions,
+        body.route
+      );
+    
+      const listItemTxReceipt = await listItemTx.wait(1);
+
+      newActiveItem.listTransactionHash = listItemTxReceipt.transactionHash;
+
+      await newActiveItem.save();
+      return callback(null, newActiveItem);
+    }
+  });
+}
+
+
+activeItemSchema.statics.listNeedItem = async function (body, callback) {
+
+  Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId }, async (err, subcollection) => {
+    
+    const marketplaceAddress = subcollection.marketplaceAddress;
+    const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
+
+    const provider = new ethers.providers.WebSocketProvider(subcollection.providerUrl);
+    const signer = new ethers.Wallet(
+      `0x${process.env.OWNER_PRIVATE_KEY}`,
+      provider
+    );
+
+    const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+
+    const tokenCounter = await marketplace.getListTokenCounter();
+
+    const needDetailsBody = {
+      beneficiaryPhoneNumber: body.beneficiaryPhoneNumber,
+      depotAddress: body.depotAddress,
+      beneficiaryAddress: body.beneficiaryAddress,
+      orderNumber: body.orderNumber,
+      donorPhoneNumber: body.donorPhoneNumber,
+      donateTimestamp: Date.now(),
+      needTokenId: body.needTokenId,
+      quantitySatisfied: body.quantitySatisfied
+    };
+
+    const newNeedDetail = new NeedDetail(needDetailsBody);
+
+    let listItemBody = {};
+
+    if (newNeedDetail) {
+
+      await newNeedDetail.save();
+
+      listItemBody = {
+        itemId: `${subcollection.nftAddress}-${tokenCounter}`,
+        seller: "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
+        charityAddress: body.charityAddress,
+        buyer: "0x00000",
+        nftAddress: subcollection.nftAddress,
+        tokenId: tokenCounter,
+        price: body.price,
+        subcollectionId: subcollection.itemId,
+        tokenUri: body.tokenUri,
+        availableEditions: 1,
+        route: zeroRoute,
+        listingType: "NEED_ITEM",
+        needDetails: newNeedDetail._id,
+        marketplaceAddress: subcollection.marketplaceAddress,
+        ledgeriseLensAddress: subcollection.ledgeriseLensAddress
+      };
+
+      const newActiveItem = new ActiveItem(listItemBody);
+      if (newActiveItem) {
+
+        const listNeedItemTx = await marketplace.listNeedItem(
+          subcollection.nftAddress,
+          tokenCounter,
+          body.price,
+          body.charityAddress,
+          body.tokenUri,
+          subcollection.itemId,
+          needDetailsBody        
+        );
+  
+        const listNeedItemTxReceipt = await listNeedItemTx.wait(1);
+  
+        newActiveItem.listTransactionHash = listNeedItemTxReceipt.transactionHash;
+  
+        await newActiveItem.save();
+
+        ActiveItem.buyItemAlreadyBought({
+          nftAddress: subcollection.nftAddress,
+          tokenId: tokenCounter,
+          school_number: needDetailsBody.donorPhoneNumber
+        }, (err, activeItem) => {
+
+          if (err) return console.log("list_need_failed");
+          return callback(null, activeItem);
+        });
+      }
+    }
+  });
+}
+
+
 activeItemSchema.statics.buyItem = async function (body, callback) {
-
-  const marketplace = new ethers.Contract(marketplaceAddress, abi, signer);
-
-  const buyItemTx = await marketplace.connect(signer).buyItem(
-    body.nftAddress,
-    body.tokenId,
-    body.charityAddress,
-    body.tokenUri,
-    body.ownerAddressString,
-    { value: body.price }
-  )
-
-  const buyItemTxReceipt = await buyItemTx.wait(1);
-
-  const args = buyItemTxReceipt.events[4].args;
 
   ActiveItem.findOne({ itemId: getIdFromParams(body.nftAddress, body.tokenId) }, (err, activeItem) => {
     if (err) return console.log("bought_failed");
-    activeItem.buyer = body.ownerAddressString.toString();
-    activeItem.availableEditions = activeItem.availableEditions - 1;
-    activeItem.tokenId = body.tokenId;
 
-    const currentDate = new Date();
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      Subcollection.findOne({ subcollectionId: activeItem.subcollectionId }, async (err, subcollection) => {
+        if (err) return console.log("bought_failed");
 
-    const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
-    const historyObject = {
-      key: "buy",
-      date: formattedDate,
-      price: body.price,
-      buyer: body.ownerAddressString,
-      openseaTokenId: parseInt(args.openseaTokenId),
-      transactionHash: buyItemTxReceipt.transactionHash
-    }
-    activeItem.history.push(historyObject);
+        const marketplaceAddress = subcollection.marketplaceAddress;
+        const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
+    
+        const provider = new ethers.providers.WebSocketProvider(subcollection.providerUrl);
+        const signer = new ethers.Wallet(
+          `0x${process.env.OWNER_PRIVATE_KEY}`,
+          provider
+        )
+        const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
 
-    Subcollection.findOne({ subcollectionId: activeItem.subcollectionId }, (err, subcollection) => {
-      if (err) return console.log("bought_failed");
-      subcollection.totalRaised = (Number(subcollection.totalRaised) + Number(ethers.utils.formatEther(body.price, "ether"))).toString();
+        const buyItemTx = await marketplace.connect(signer).buyItem(
+          body.nftAddress,
+          body.tokenId,
+          body.charityAddress,
+          body.tokenUri,
+          body.ownerAddressString,
+          { value: body.price }
+        )
+      
+        const buyItemTxReceipt = await buyItemTx.wait(1);
+      
+        const args = buyItemTxReceipt.events[4].args;
 
-      activeItem.save();
-      subcollection.save();
-      return callback(null, activeItem);
+        activeItem.buyer = body.ownerAddressString.toString();
+        activeItem.availableEditions = activeItem.availableEditions - 1;
+        activeItem.tokenId = body.tokenId;
+
+        const currentDate = new Date();
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+        const historyObject = {
+          key: "buy",
+          date: formattedDate,
+          price: body.price,
+          buyer: body.ownerAddressString,
+          openseaTokenId: parseInt(args.openseaTokenId),
+          transactionHash: buyItemTxReceipt.transactionHash
+        }
+        activeItem.history.push(historyObject);
+
+        subcollection.totalRaised = (Number(subcollection.totalRaised) + Number(ethers.utils.formatEther(body.price, "ether"))).toString();
+
+        activeItem.save();
+        subcollection.save();
+        return callback(null, activeItem);
     })
   })
-
 }
 
 activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) {
 
-  ActiveItem.findOne({tokenId: body.tokenId}, async (err, activeItem) => {
-    
-    const marketplace = new ethers.Contract(marketplaceAddress, abi, signer);
+  ActiveItem.findOne({ tokenId: body.tokenId, nftAddress: body.nftAddress }, (err, activeItem) => {
 
-    const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
-      activeItem.nftAddress,
-      activeItem.tokenId,
-      activeItem.charityAddress,
-      activeItem.tokenUri,
-      activeItem.price,
-      body.school_number
-    )
+    Subcollection.findOne({ itemId: activeItem.subcollectionId, nftAddress: activeItem.nftAddress }, async (err, subcollection) => {
 
-    const buyItemTxReceipt = await buyItemTx.wait(1);
-
-    const args = buyItemTxReceipt.events[2].args;
-
-    activeItem.buyer = body.school_number;
-    activeItem.availableEditions = activeItem.availableEditions - 1;
-
-    const currentDate = new Date();
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-
-    const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
-    const historyObject = {
-      key: "buy",
-      date: formattedDate,
-      price: activeItem.price,
-      buyer: body.school_number,
-      openseaTokenId: parseInt(args.openseaTokenId),
-      transactionHash: buyItemTxReceipt.transactionHash
-    }
-
-    activeItem.history.push(historyObject);
-
-    Subcollection.findOne({ subcollectionId: activeItem.subcollectionId }, (err, subcollection) => {
       if (err) return callback("bought_failed");
+
+      const marketplaceAddress = subcollection.marketplaceAddress;
+      const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
+
+      const provider = new ethers.providers.WebSocketProvider(subcollection.providerUrl);
+      const signer = new ethers.Wallet(
+        `0x${process.env.OWNER_PRIVATE_KEY}`,
+        provider
+      );
+
+      const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+
+      const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
+        activeItem.nftAddress,
+        activeItem.tokenId,
+        activeItem.charityAddress,
+        activeItem.tokenUri,
+        activeItem.price,
+        body.school_number
+      )
+
+      const buyItemTxReceipt = await buyItemTx.wait(1);
+
+      const args = buyItemTxReceipt.events[2].args;
+
+      activeItem.buyer = body.school_number;
+      activeItem.availableEditions = activeItem.availableEditions - 1;
+
+      const currentDate = new Date();
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+
+      const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+      const historyObject = {
+        key: "buy",
+        date: formattedDate,
+        price: activeItem.price,
+        buyer: body.school_number,
+        openseaTokenId: parseInt(args.openseaTokenId),
+        transactionHash: buyItemTxReceipt.transactionHash
+      }
+
+      activeItem.history.push(historyObject);
+
       subcollection.totalRaised = (parseInt(subcollection.totalRaised) + parseInt(activeItem.price)).toString();
 
       activeItem.save();
@@ -454,42 +667,54 @@ activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
       
       iyzipay.payment.create(request, async function (err, result) {
           if (!err && result.status == "success") {
-            const marketplace = new ethers.Contract(marketplaceAddress, abi, signer);
 
-            const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
-              nftAddress,
-              tokenId,
-              charityAddress,
-              tokenURI,
-              activeItem.price,
-              donor.school_number
-            )
-          
-            const buyItemTxReceipt = await buyItemTx.wait(1);
-
-            const args = buyItemTxReceipt.events[2].args;
-
-            activeItem.buyer = donor.school_number;
-            activeItem.availableEditions = activeItem.availableEditions - 1;
-
-            const currentDate = new Date();
-            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-
-            const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
-            const historyObject = {
-              key: "buy",
-              date: formattedDate,
-              price: activeItem.price,
-              buyer: donor.school_number,
-              openseaTokenId: parseInt(args.openseaTokenId),
-              transactionHash: buyItemTxReceipt.transactionHash
-            }
-
-            activeItem.history.push(historyObject);
-
-            Subcollection.findOne({ subcollectionId: activeItem.subcollectionId }, (err, subcollection) => {
+            Subcollection.findOne({ subcollectionId: activeItem.subcollectionId }, async (err, subcollection) => {
+            
               if (err) return callback("bought_failed");
+
+              const marketplaceAddress = subcollection.marketplaceAddress;
+              const marketplaceAbi = require(`../constants/abis/${subcollection.marketplaceAddress}.json`);
+              
+              const provider = new ethers.providers.WebSocketProvider(subcollection.providerUrl);
+              const signer = new ethers.Wallet(
+                `0x${process.env.OWNER_PRIVATE_KEY}`,
+                provider
+              );
+
+              const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+
+              const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
+                nftAddress,
+                tokenId,
+                charityAddress,
+                tokenURI,
+                activeItem.price,
+                donor.school_number
+              )
+            
+              const buyItemTxReceipt = await buyItemTx.wait(1);
+
+              const args = buyItemTxReceipt.events[2].args;
+
+              activeItem.buyer = donor.school_number;
+              activeItem.availableEditions = activeItem.availableEditions - 1;
+
+              const currentDate = new Date();
+              const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+
+              const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+              const historyObject = {
+                key: "buy",
+                date: formattedDate,
+                price: activeItem.price,
+                buyer: donor.school_number,
+                openseaTokenId: parseInt(args.openseaTokenId),
+                transactionHash: buyItemTxReceipt.transactionHash
+              }
+
+              activeItem.history.push(historyObject);
+
               subcollection.totalRaised = (parseInt(subcollection.totalRaised) + parseInt(activeItem.price)).toString();
 
               activeItem.save();
@@ -511,7 +736,7 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
   if (body.key == "stamp" || body.key == "shipped" || body.key == "delivered") {
 
     if (typeof body.location.longitude == "number" && typeof body.location.latitude == "number") {
-      ActiveItem.findOne({ tokenId: body.marketplaceTokenId }, async (err, activeItem) => {
+      ActiveItem.findOne({ tokenId: body.marketplaceTokenId, nftAddress: body.nftAddress }, async (err, activeItem) => {
 
         if (err) return callback(err, null);
 
@@ -533,6 +758,7 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
         // Upload to blockchain
 
         const realItemHistoryBlockchainData = {
+          subcollectionId: activeItem.subcollectionId,
           nftAddress: activeItem.nftAddress,
           marketplaceTokenId: activeItem.tokenId,
           key: body.key,
@@ -567,6 +793,7 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
     return callback("bad_request", null);
   }
 }
+
 
 
 const ActiveItem = mongoose.model("ActiveItem", activeItemSchema);

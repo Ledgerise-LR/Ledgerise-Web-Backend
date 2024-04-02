@@ -25,6 +25,7 @@ module.exports = async () => {
       tokenUri: tokenUri.toString(), // will be uploaded to pinata from react
       subcollectionId: subcollectionId.toString(),
       availableEditions: availableEditions.toNumber(),
+      listingType: "ACTIVE_ITEM",
       route: route
     }
 
@@ -40,6 +41,7 @@ module.exports = async () => {
         activeItemFetched.subcollectionId = subcollectionId;
         activeItemFetched.availableEditions = availableEditions;
         activeItemFetched.route = route;
+        activeItemFetched.listingType = "ACTIVE_ITEM";
         const currentDate = new Date();
         const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 

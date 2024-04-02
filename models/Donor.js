@@ -31,8 +31,8 @@ const donorSchema = new mongoose.Schema({
   // phone_number: {
   //   type: String,
   //   trim: true,
-  //   required: true,
-  //   unique: true
+  //   required: false,
+  //   unique: false
   // },
 
   // national_identification_number: {

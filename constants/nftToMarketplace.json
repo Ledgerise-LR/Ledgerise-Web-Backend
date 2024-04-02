@@ -1,0 +1,12 @@
+{
+  "0xF7ed5dBe4efDC30DFcBBF4bcbEa13dBDcBbe6520": {
+    "chainId": "80001",
+    "marketplace": "0x8443586bb1edcc961f5d972c4f73a9c4beef6210",
+    "lens": "0x5B6f403547dB80d67120aa2b3F8148c556C86fa6"
+  },
+  "0x155dEBfc7f38a10297EB35AC65f3839eA09c4d5F": {
+    "chainId": "80001",
+    "marketplace": "0x0EC36096864f4200Cdc183e3eaa3547caeAE6fe0",
+    "lens": "0x5B6f403547dB80d67120aa2b3F8148c556C86fa6"
+  }
+}

@@ -54,6 +54,11 @@ const companySchema = new mongoose.Schema({
     default: ""
   },
 
+  receipientDescription: {
+    type: String,
+    default: ""
+  },
+
   bankName: {
     type: String,
     default: ""
@@ -94,7 +99,7 @@ companySchema.statics.getAllItems = function (body, callback) {
     subcollection.findOne({ companyCode: company.code }, (err, m_subcollection) => {
       if (err || !company) return callback("collection_error");
 
-      ActiveItem.find({ subcollectionId: m_subcollection.itemId }, (err, activeItems) => {
+      ActiveItem.find({ subcollectionId: m_subcollection.itemId, nftAddress: m_subcollection.nftAddress }, (err, activeItems) => {
         if (err || !company) return callback("item_error");
 
         async.timesSeries(activeItems.length, (i, next) => {

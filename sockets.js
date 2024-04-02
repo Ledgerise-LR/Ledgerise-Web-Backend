@@ -31,6 +31,7 @@ let date = ""
 let user_info = "";
 let bounds = {};
 let subcollectionId = "";
+let nftAddress = "";
 
 var socketConnection = "";
 
@@ -60,6 +61,7 @@ const connectRealTime = (server, nftAddress) => {
           tempBase64Image = "";
           bounds = "";
           subcollectionId = "";
+          nftAddress = "";
         }
         tempBase64Image += base64ImageData;
 
@@ -68,7 +70,6 @@ const connectRealTime = (server, nftAddress) => {
         // // debugging
         // console.log(`Length of image: ${tempBase64Image.length}`);
         // console.log(`Location: ${location.latitude}, ${location.longitude}`);
-        // console.log(`Location 2: ${location2.latitude}, ${location2.longitude}`);
         // console.log(`user_info: ${user_info}`);
         // console.log(`date: ${date}`);
         // console.log(`key: ${key}`);
@@ -90,7 +91,7 @@ const connectRealTime = (server, nftAddress) => {
 
               const openseaTokenId = parseInt(donorsArray[i]);
 
-              const item = await ActiveItem.findOne({ tokenId: tokenId, subcollectionId: subcollectionId }).select({ history: { $elemMatch: { openseaTokenId: openseaTokenId } } });
+              const item = await ActiveItem.findOne({ tokenId: tokenId, subcollectionId: subcollectionId, nftAddress: nftAddress }).select({ history: { $elemMatch: { openseaTokenId: openseaTokenId } } });
 
               const buyer = item.history[0].buyer;
 
@@ -104,7 +105,7 @@ const connectRealTime = (server, nftAddress) => {
                 location: location,
                 date: date,
                 isUploadedToBlockchain: false,
-                bounds: bounds
+                bounds: bounds,
               }
 
               VisualVerification.createVisualVerification(eventData, async (err, visualVerification) => {
@@ -132,6 +133,7 @@ const connectRealTime = (server, nftAddress) => {
         user_info = base64ImageData.user_info;
         bounds = base64ImageData.barcode_bounds;
         subcollectionId = base64ImageData.subcollectionId;
+        nftAddress = base64ImageData.nftAddress;
       }
     })
 
