@@ -12,6 +12,8 @@ const NeedDetail = require("./NeedDetail");
 const { getIdFromParams } = require("../utils/getIdFromParams");
 const Donor = require("./Donor");
 const {v4: uuidv4} = require("uuid");
+const Need = require("./Need");
+const Beneficiary = require("./Beneficiary");
 
 require("dotenv").config();
 
@@ -377,6 +379,68 @@ activeItemSchema.statics.listItem = async function (body, callback) {
       return callback(null, newActiveItem);
     }
   });
+}
+
+
+activeItemSchema.statics.createNeed = async function (body, callback) {
+
+  const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
+  
+  const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
+
+  const provider = new ethers.providers.WebSocketProvider(process.env.URL);
+  const signer = new ethers.Wallet(
+    `0x${process.env.OWNER_PRIVATE_KEY}`,
+    provider
+  );
+
+  const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+
+  const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
+
+  const needItemObjectBlockchain = {
+    nftAddress: nftAddress,
+    beneficiaryPhoneNumber: body.beneficiaryPhoneNumber,
+    name: body.name,
+    description: body.description,
+    quantity: body.quantity,
+    needTokenId: "",
+    transactionHash: "",
+    beneficiary_id: body.beneficiary_id,
+    timestamp: ""
+  };
+
+  // const createNeedTx = await marketplace.connect(signer).createNeed(
+  //   needItemObjectBlockchain.nftAddress,
+  //   needItemObjectBlockchain.beneficiaryPhoneNumber,
+  //   needItemObjectBlockchain.name,
+  //   needItemObjectBlockchain.description,
+  //   needItemObjectBlockchain.quantity
+  // );
+
+  // const createNeedTxReceipt = await createNeedTx.wait(1);
+
+  // const needArgs = createNeedTxReceipt.events[0].args;
+  // const needTokenId = needArgs.needTokenId.toNumber();
+
+  // needItemObjectBlockchain.needTokenId = needTokenId;
+
+  // const transactionHash = createNeedTxReceipt.transactionHash;
+
+  // needItemObjectBlockchain.transactionHash = transactionHash;
+  needItemObjectBlockchain.timestamp = Date.now();
+
+  Need.addNewNeed(needItemObjectBlockchain, (err, needItem) => {
+    if (err) return console.log("create_need_failed");
+
+    Beneficiary.findById(needItem.beneficiary_id, (err, beneficiary) => {
+
+      if (err) return console.log("create_need_failed");
+      beneficiary.needs.push(needItem._id);
+      beneficiary.save();
+    })
+    return callback(null, needItem);
+  }); 
 }
 
 

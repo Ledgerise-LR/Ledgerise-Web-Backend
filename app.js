@@ -722,6 +722,13 @@ app.post("/beneficiary/get-needs", (req, res) => {
   })
 })
 
+app.get("/needs/get-all-needs", (req, res) => {
+  Need.find({}, (err, needs) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.json({ success: true, needs: needs });
+  })
+})
+
 app.post("/beneficiary/get-needs-temp", (req, res) => {
 
   let activeItemArr = [];
@@ -756,6 +763,21 @@ app.post("/active-item/list-item", (req, res) => {
     if (err) return res.json({ success: false, err: err });
     return res.json({ success: true, activeItem: activeItem });
   })
+})
+
+
+app.post("/need/create", (req, res) => {
+  ActiveItem.createNeed(req.body, (err, need) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.json({ success: true, need: need });
+  })
+})
+
+
+app.post("/needs/list-need-item", (req, res) => {
+
+  console.log(req.body);
+  res.json({})
 })
 
 

@@ -91,7 +91,7 @@ const connectRealTime = (server, nftAddress) => {
 
               const openseaTokenId = parseInt(donorsArray[i]);
 
-              const item = await ActiveItem.findOne({ tokenId: tokenId, subcollectionId: subcollectionId, nftAddress: nftAddress }).select({ history: { $elemMatch: { openseaTokenId: openseaTokenId } } });
+              const item = await ActiveItem.findOne({ tokenId: tokenId /*, subcollectionId: subcollectionId, nftAddress: nftAddress*/ }).select({ history: { $elemMatch: { openseaTokenId: openseaTokenId } } });
 
               const buyer = item.history[0].buyer;
 

@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 const needSchema = new mongoose.Schema({
   
-  needTokenId: {
+  need_token_id: {
     type: Number,
     default: ""
   },
@@ -21,7 +21,7 @@ const needSchema = new mongoose.Schema({
     default: ""
   },
 
-  beneficiary_phone_number: {
+  beneficiaryPhoneNumber: {
     type: String,
     default: ""
   },
@@ -37,12 +37,23 @@ const needSchema = new mongoose.Schema({
   },
 
   beneficiary_id: {
-    type: mongoose.Types.ObjectId
+    type: String,
+    default: ""
+  },
+
+  transactionHash: {
+    type: String,
+    default: ""
+  },
+
+  timestamp: {
+    type: String,
+    default: ""
   }
 });
 
 needSchema.statics.addNewNeed = function (body, callback) {
-  const newNeed = new newNeed(body);
+  const newNeed = new Need(body);
   if (newNeed) {
     newNeed.save();
     return callback(null, newNeed);

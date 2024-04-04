@@ -23,6 +23,11 @@ const beneficiarySchema = new mongoose.Schema({
     required: true
   },
 
+  phone_number: {
+    type: String,
+    default: ""
+  },
+
   password: {
     type: String,
     required: true
