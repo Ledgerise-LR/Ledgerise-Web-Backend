@@ -20,14 +20,15 @@ const signer = new ethers.Wallet(
 
 module.exports = async (openseaTokenId, tokenUri, buyer, key, tokenId) => {
 
-  ActiveItem.findOne({/*nftAddress: nftAddress,*/ tokenId: tokenId}, async (err, activeItem) => {
-
-    const ledgeriseLensAddress = activeItem.ledgeriseLensAddress;
-    const ledgeriseLensAbi = require(`../constants/abis/${ledgeriseLensAddress}.json`);
+    const ledgeriseLensAddress = "0x5B6f403547dB80d67120aa2b3F8148c556C86fa6";
+    const ledgeriseLensAbi = require(`../constants/abis/0x5B6f403547dB80d67120aa2b3F8148c556C86fa6.json`);
 
     const ledgeriseLens = new ethers.Contract(ledgeriseLensAddress, ledgeriseLensAbi, signer);
 
     try {
+
+      const tokenCounter = await ledgeriseLens.connect(signer).getTokenCounter();
+      const tokenCounterInteger = tokenCounter.toNumber();
 
       const mintVerificationTx = await ledgeriseLens.connect(signer).mintVisualNft(
         parseInt(openseaTokenId),
@@ -36,15 +37,20 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key, tokenId) => {
         EVENT_DATA[key]
       );
 
+      console.log("hello 1")
+
       const mintVerificationTxReceipt = await mintVerificationTx.wait(1);
 
+      console.log("hello")
+
+      console.log(mintVerificationTxReceipt.transactionHash)
+
       return {
-        tokenId: mintVerificationTxReceipt.events[1].args.tokenCounter,
+        tokenId: tokenCounterInteger,
         transactionHash: mintVerificationTxReceipt.transactionHash
       };
     } catch (error) {
       console.log(error);
     }
-  })
 }
 

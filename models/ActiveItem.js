@@ -801,7 +801,7 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
   if (body.key == "stamp" || body.key == "shipped" || body.key == "delivered") {
 
     if (typeof body.location.longitude == "number" && typeof body.location.latitude == "number") {
-      ActiveItem.findOne({ tokenId: body.marketplaceTokenId, nftAddress: body.nftAddress }, async (err, activeItem) => {
+      ActiveItem.findOne({ tokenId: body.marketplaceTokenId/*, nftAddress: body.nftAddress*/ }, async (err, activeItem) => {
 
         if (err) return callback(err, null);
 

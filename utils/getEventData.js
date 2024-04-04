@@ -28,6 +28,7 @@ module.exports = (callback) => {
             const ipfsHash = await uploadImageToPinata(body);
 
             visualVerification.tokenUri = ipfsHash;
+            console.log(ipfsHash)
             // visualVerification.base64_image = "";
 
             const { tokenId, transactionHash } = await mintVerification(
@@ -37,6 +38,8 @@ module.exports = (callback) => {
               visualVerification.key,
               visualVerification.tokenId
             );
+
+            console.log("debug 1")
 
             visualVerification.visualVerificationTokenId = tokenId;
             visualVerification.transactionHash = transactionHash;

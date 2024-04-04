@@ -8,7 +8,7 @@ require("dotenv").config();
 
 module.exports = async (realItemHistoryData) => {
   
-  Subcollection.findOne({ nftAddress: realItemHistoryData.nftAddress, itemId: realItemHistoryData.subcollectionId }, async (err, subcollection) => {
+  Subcollection.findOne({ /*nftAddress: realItemHistoryData.nftAddress,*/ itemId: realItemHistoryData.subcollectionId }, async (err, subcollection) => {
 
     if (err) return callback("bought_failed");
 
