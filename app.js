@@ -83,7 +83,7 @@ function checkForBuyerPresence(buyerAddress, eachCollaboratorSet) {
 
 app.get("/get-asset", (req, res) => {
 
-  ActiveItem.findOne({ tokenId: req.query.tokenId, subcollectionId: req.query.subcollectionId, nftAddress: req.query.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
+  ActiveItem.findOne({ tokenId: req.query.tokenId, subcollectionId: req.query.subcollectionId, /*nftAddress: req.query.nftAddress,*/ listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
     const groupedObjects = {};
 
     if (!err && activeItem) {

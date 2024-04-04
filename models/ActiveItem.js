@@ -213,9 +213,10 @@ activeItemSchema.statics.sortDefault = function (body, callback) {
   editionFilteredArray = [];
 
   const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter);
+
   ActiveItem.find({
     subcollectionId: body.subcollectionId,
-    nftAddress: body.nftAddress
+    /*nftAddress: body.nftAddress*/
   }, (err, activeItems) => {
 
     if (err) return callback(err);
@@ -326,7 +327,7 @@ const signer = new ethers.Wallet(
 activeItemSchema.statics.listItem = async function (body, callback) {
 
   Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId }, async (err, subcollection) => {
-    
+
     const marketplaceAddress = subcollection.marketplaceAddress;
     const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
 
