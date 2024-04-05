@@ -20,8 +20,10 @@ const signer = new ethers.Wallet(
 
 module.exports = async (openseaTokenId, tokenUri, buyer, key, tokenId) => {
 
-    const ledgeriseLensAddress = "0x5B6f403547dB80d67120aa2b3F8148c556C86fa6";
-    const ledgeriseLensAbi = require(`../constants/abis/0x5B6f403547dB80d67120aa2b3F8148c556C86fa6.json`);
+    const activeItem = await ActiveItem.findOne({ tokenId: tokenId });
+
+    const ledgeriseLensAddress = activeItem.ledgeriseLensAddress;
+    const ledgeriseLensAbi = require(`../constants/abis/${ledgeriseLensAddress}.json`);
 
     const ledgeriseLens = new ethers.Contract(ledgeriseLensAddress, ledgeriseLensAbi, signer);
 
@@ -37,13 +39,7 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key, tokenId) => {
         EVENT_DATA[key]
       );
 
-      console.log("hello 1")
-
       const mintVerificationTxReceipt = await mintVerificationTx.wait(1);
-
-      console.log("hello")
-
-      console.log(mintVerificationTxReceipt.transactionHash)
 
       return {
         tokenId: tokenCounterInteger,

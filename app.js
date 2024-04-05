@@ -798,7 +798,7 @@ server.listen(PORT, async () => {
   //   async.timesSeries(activeItems.length, (i, next) => {
   //     const activeItem = activeItems[i];
       
-  //     activeItem.listingType = "ACTIVE_ITEM"
+  //     activeItem.ledgeriseLensAddress = "0x5B6f403547dB80d67120aa2b3F8148c556C86fa6";
   //     activeItem.save();
   //     next();
   //   })
@@ -806,6 +806,8 @@ server.listen(PORT, async () => {
 
   console.log("Server is listening on port", PORT);
 
+  // const activeItem = await ActiveItem.findOne({ tokenId: "2" });
+  // console.log(activeItem.ledgeriseLensAddress)
   verifyBlockchain();
 })
 
