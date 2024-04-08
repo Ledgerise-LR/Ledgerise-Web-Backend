@@ -18,9 +18,9 @@ const signer = new ethers.Wallet(
   provider
 )
 
-module.exports = async (openseaTokenId, tokenUri, buyer, key, tokenId) => {
+module.exports = async (openseaTokenId, tokenUri, buyer, key, tokenId, nftAddress) => {
 
-    const activeItem = await ActiveItem.findOne({ tokenId: tokenId });
+    const activeItem = await ActiveItem.findOne({ tokenId: tokenId, nftAddress: nftAddress });
 
     const ledgeriseLensAddress = activeItem.ledgeriseLensAddress;
     const ledgeriseLensAbi = require(`../constants/abis/${ledgeriseLensAddress}.json`);

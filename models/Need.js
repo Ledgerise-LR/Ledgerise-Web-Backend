@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 const needSchema = new mongoose.Schema({
   
-  need_token_id: {
+  needTokenId: {
     type: Number,
     default: ""
   },
@@ -49,6 +49,36 @@ const needSchema = new mongoose.Schema({
   timestamp: {
     type: String,
     default: ""
+  },
+
+  location: {
+    latitude: {
+      type: Number
+    },
+
+    longitude: {
+      type: Number
+    }
+  },
+
+  marketplaceAddress: {
+    type: String
+  },
+
+  ledgeriseLensAddress: {
+    type: String
+  },
+
+  providerUrl: {
+    type: String
+  },
+
+  nftAddress: {
+    type: String
+  },
+
+  subcollectionId: {
+    type: Number
   }
 });
 

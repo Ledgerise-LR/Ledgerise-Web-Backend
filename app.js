@@ -34,6 +34,8 @@ const Company = require("./models/Company");
 const CargoCompany = require("./models/CargoCompany");
 const Beneficiary = require("./models/Beneficiary");
 const Need = require("./models/Need");
+const NeedDetail = require("./models/NeedDetail");
+const DepotLocation = require("./models/DepotLocation");
 
 const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
 const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
@@ -83,7 +85,7 @@ function checkForBuyerPresence(buyerAddress, eachCollaboratorSet) {
 
 app.get("/get-asset", (req, res) => {
 
-  ActiveItem.findOne({ tokenId: req.query.tokenId, /*subcollectionId: req.query.subcollectionId, /*nftAddress: req.query.nftAddress,*/ listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
+  ActiveItem.findOne({ tokenId: req.query.tokenId, subcollectionId: req.query.subcollectionId, nftAddress: req.query.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
     const groupedObjects = {};
 
     if (!err && activeItem) {
@@ -405,7 +407,7 @@ app.get("/sort/newest", (req, res) => {
 })
 
 app.get("/get-all-items-collection", (req, res) => {
-  ActiveItem.find({ subcollectionId: req.query.subcollectionId, /*nftAddress: req.query.nftAddress,*/ listingType: "ACTIVE_ITEM" }, (err, docs) => {
+  ActiveItem.find({ subcollectionId: req.query.subcollectionId, nftAddress: req.query.nftAddress, listingType: "ACTIVE_ITEM" }, (err, docs) => {
     if (err) return console.log("bad_request");
     return res.status(200).json({ activeItems: docs });
   })
@@ -776,10 +778,60 @@ app.post("/need/create", (req, res) => {
 
 app.post("/needs/list-need-item", (req, res) => {
 
-  console.log(req.body);
-  res.json({})
+  ActiveItem.listNeedItem(req.body, (err, needItem) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.json({ success: true, needItem: needItem });
+  })
 })
 
+
+app.post("/needs/get-satisfied-donations-of-donor", (req, res) => {
+
+  let needItemsArray = [];
+
+  ActiveItem.find({ listingType: "NEED_ITEM", buyer: req.body.buyer }, (err, needItems) => {
+    if (err) return res.json({ success: false, err: err });
+
+    async.timesSeries(needItems.length, (i, next) => {
+      const needItem = needItems[i];
+
+      NeedDetail.findById(needItem.needDetails, (err, needDetails) => {
+        if (err) return res.json({ success: false, err: err });
+
+        Need.findOne({ nftAddress: needItem.nftAddress, needTokenId: needDetails.needTokenId }, (err, need) => {
+
+          if (err) return res.json({ success: false, err: err });
+
+          needItemsArray.push({
+            needItem: needItem,
+            needDetails: needDetails,
+            need: need
+          });
+          next();
+        })
+      })
+    }, (err) => {
+      if (err) return res.json({ success: false, err: err });
+
+      return res.json({
+        success: true,
+        needItemsArray: needItemsArray
+      });
+    })
+  })
+})
+
+app.post("/depot/get-depot-location", (req, res) => {
+
+  DepotLocation.findOne({ depotName: req.body.depotName }, (err, depot) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.json({
+      success: true,
+      depotLocation: depot.depotLocation
+    })
+  })
+
+})
 
 server.listen(PORT, async () => {
 
@@ -794,20 +846,7 @@ server.listen(PORT, async () => {
   connectRealTime(server, nftAddress);
   receiveImage(app);
 
-  // ActiveItem.find({}, (err, activeItems) => {
-  //   async.timesSeries(activeItems.length, (i, next) => {
-  //     const activeItem = activeItems[i];
-      
-  //     activeItem.ledgeriseLensAddress = "0x5B6f403547dB80d67120aa2b3F8148c556C86fa6";
-  //     activeItem.save();
-  //     next();
-  //   })
-  // })
-
   console.log("Server is listening on port", PORT);
-
-  // const activeItem = await ActiveItem.findOne({ tokenId: "2" });
-  // console.log(activeItem.ledgeriseLensAddress)
   verifyBlockchain();
 })
 

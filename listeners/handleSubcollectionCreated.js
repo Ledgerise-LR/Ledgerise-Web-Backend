@@ -15,7 +15,7 @@ module.exports = async () => {
   const mainCollection = new ethers.Contract(mainCollectionAddress, abi, provider);
   mainCollection.on("SubcollectionCreated", (id, name, charityAddress, properties) => {
 
-    Subcollection.findOne({ itemId: id }, (err, subcollection) => {
+    Subcollection.findOne({ nftAddress: mainCollectionAddress, itemId: id }, (err, subcollection) => {
       if (err || subcollection) {
         console.log("bad_request");
         return null;

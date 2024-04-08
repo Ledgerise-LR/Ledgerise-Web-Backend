@@ -316,13 +316,13 @@ activeItemSchema.statics.sortNewest = function (body, callback) {
   });
 }
 
-const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
+// const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
 
-const provider = new ethers.providers.WebSocketProvider(process.env.URL);
-const signer = new ethers.Wallet(
-  `0x${process.env.OWNER_PRIVATE_KEY}`,
-  provider
-)
+// const provider = new ethers.providers.WebSocketProvider(process.env.URL);
+// const signer = new ethers.Wallet(
+//   `0x${process.env.OWNER_PRIVATE_KEY}`,
+//   provider
+// )
 
 activeItemSchema.statics.listItem = async function (body, callback) {
 
@@ -385,74 +385,87 @@ activeItemSchema.statics.listItem = async function (body, callback) {
 
 activeItemSchema.statics.createNeed = async function (body, callback) {
 
-  const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
-  
-  const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
 
-  const provider = new ethers.providers.WebSocketProvider(process.env.URL);
-  const signer = new ethers.Wallet(
-    `0x${process.env.OWNER_PRIVATE_KEY}`,
-    provider
-  );
+    Beneficiary.findById(body.beneficiary_id, async (err, beneficiary) => {
+        
+      const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
+      
+      const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
 
-  const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+      const provider = new ethers.providers.WebSocketProvider(process.env.URL);
+      const signer = new ethers.Wallet(
+        `0x${process.env.OWNER_PRIVATE_KEY}`,
+        provider
+      );
 
-  const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
+      const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
 
-  const needItemObjectBlockchain = {
-    nftAddress: nftAddress,
-    beneficiaryPhoneNumber: body.beneficiaryPhoneNumber,
-    name: body.name,
-    description: body.description,
-    quantity: body.quantity,
-    needTokenId: "",
-    transactionHash: "",
-    beneficiary_id: body.beneficiary_id,
-    timestamp: ""
-  };
+      const nftAddress = beneficiary.nftAddress;
 
-  // const createNeedTx = await marketplace.connect(signer).createNeed(
-  //   needItemObjectBlockchain.nftAddress,
-  //   needItemObjectBlockchain.beneficiaryPhoneNumber,
-  //   needItemObjectBlockchain.name,
-  //   needItemObjectBlockchain.description,
-  //   needItemObjectBlockchain.quantity
-  // );
+      const needItemObjectBlockchain = {
+        nftAddress: nftAddress,
+        beneficiaryPhoneNumber: body.beneficiaryPhoneNumber,
+        name: body.name,
+        description: body.description,
+        quantity: body.quantity,
+        needTokenId: "",
+        transactionHash: "",
+        beneficiary_id: body.beneficiary_id,
+        timestamp: "",
+        location: {
+          latitude: 41007,
+          longitude: 29195
+        },
+        marketplaceAddress: marketplaceAddress,
+        ledgeriseLensAddress: networkMapping["LedgeriseLens"][process.env.ACTIVE_CHAIN_ID],
+        providerUrl: process.env.URL,
+        nftAddress: beneficiary.nftAddress,
+        subcollectionId: beneficiary.subcollectionId
+      };
 
-  // const createNeedTxReceipt = await createNeedTx.wait(1);
+      const createNeedTx = await marketplace.connect(signer).createNeed(
+        needItemObjectBlockchain.nftAddress,
+        needItemObjectBlockchain.beneficiaryPhoneNumber,
+        needItemObjectBlockchain.name,
+        needItemObjectBlockchain.description,
+        needItemObjectBlockchain.quantity,
+        needItemObjectBlockchain.location.latitude,
+        needItemObjectBlockchain.location.longitude
+      );
 
-  // const needArgs = createNeedTxReceipt.events[0].args;
-  // const needTokenId = needArgs.needTokenId.toNumber();
+      const createNeedTxReceipt = await createNeedTx.wait(1);
 
-  // needItemObjectBlockchain.needTokenId = needTokenId;
+      const needArgs = createNeedTxReceipt.events[0].args;
+      const needTokenId = needArgs.needTokenId.toNumber();
 
-  // const transactionHash = createNeedTxReceipt.transactionHash;
+      needItemObjectBlockchain.needTokenId = needTokenId;
 
-  // needItemObjectBlockchain.transactionHash = transactionHash;
-  needItemObjectBlockchain.timestamp = Date.now();
+      const transactionHash = createNeedTxReceipt.transactionHash;
 
-  Need.addNewNeed(needItemObjectBlockchain, (err, needItem) => {
-    if (err) return console.log("create_need_failed");
+      needItemObjectBlockchain.transactionHash = transactionHash;
+      needItemObjectBlockchain.timestamp = Date.now();
 
-    Beneficiary.findById(needItem.beneficiary_id, (err, beneficiary) => {
+      Need.addNewNeed(needItemObjectBlockchain, (err, needItem) => {
 
-      if (err) return console.log("create_need_failed");
-      beneficiary.needs.push(needItem._id);
-      beneficiary.save();
-    })
-    return callback(null, needItem);
+        if (err) return console.log("create_need_failed");
+        beneficiary.needs.push(needItem._id);
+        beneficiary.save();
+        return callback(null, needItem);
+      })
   }); 
 }
 
 
 activeItemSchema.statics.listNeedItem = async function (body, callback) {
 
-  Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId }, async (err, subcollection) => {
+  Need.findById(body.needId, async (err, need) => {
     
-    const marketplaceAddress = subcollection.marketplaceAddress;
+    if (err) return callback(err);
+
+    const marketplaceAddress = need.marketplaceAddress;
     const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
 
-    const provider = new ethers.providers.WebSocketProvider(subcollection.providerUrl);
+    const provider = new ethers.providers.WebSocketProvider(need.providerUrl);
     const signer = new ethers.Wallet(
       `0x${process.env.OWNER_PRIVATE_KEY}`,
       provider
@@ -463,13 +476,13 @@ activeItemSchema.statics.listNeedItem = async function (body, callback) {
     const tokenCounter = await marketplace.getListTokenCounter();
 
     const needDetailsBody = {
-      beneficiaryPhoneNumber: body.beneficiaryPhoneNumber,
+      beneficiaryPhoneNumber: need.beneficiaryPhoneNumber,
       depotAddress: body.depotAddress,
       beneficiaryAddress: body.beneficiaryAddress,
       orderNumber: body.orderNumber,
       donorPhoneNumber: body.donorPhoneNumber,
       donateTimestamp: Date.now(),
-      needTokenId: body.needTokenId,
+      needTokenId: need.needTokenId,
       quantitySatisfied: body.quantitySatisfied
     };
 
@@ -482,34 +495,40 @@ activeItemSchema.statics.listNeedItem = async function (body, callback) {
       await newNeedDetail.save();
 
       listItemBody = {
-        itemId: `${subcollection.nftAddress}-${tokenCounter}`,
+        itemId: `${need.nftAddress}-${tokenCounter}`,
         seller: "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
-        charityAddress: body.charityAddress,
-        buyer: "0x00000",
-        nftAddress: subcollection.nftAddress,
+        charityAddress: "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
+        buyer: "0x0000000000000000000000000000000000000000",
+        nftAddress: need.nftAddress,
         tokenId: tokenCounter,
         price: body.price,
-        subcollectionId: subcollection.itemId,
+        subcollectionId: need.subcollectionId,
         tokenUri: body.tokenUri,
         availableEditions: 1,
         route: zeroRoute,
         listingType: "NEED_ITEM",
         needDetails: newNeedDetail._id,
-        marketplaceAddress: subcollection.marketplaceAddress,
-        ledgeriseLensAddress: subcollection.ledgeriseLensAddress
+        marketplaceAddress: need.marketplaceAddress,
+        ledgeriseLensAddress: need.ledgeriseLensAddress
       };
 
       const newActiveItem = new ActiveItem(listItemBody);
       if (newActiveItem) {
 
+        // console.log([need.nftAddress,
+        //   tokenCounter,
+        //   body.price,
+        //   "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
+        //   body.tokenUri,
+        //   needDetailsBody])
+
         const listNeedItemTx = await marketplace.listNeedItem(
-          subcollection.nftAddress,
+          need.nftAddress,
           tokenCounter,
           body.price,
-          body.charityAddress,
+          "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
           body.tokenUri,
-          subcollection.itemId,
-          needDetailsBody        
+          needDetailsBody
         );
   
         const listNeedItemTxReceipt = await listNeedItemTx.wait(1);
@@ -519,7 +538,7 @@ activeItemSchema.statics.listNeedItem = async function (body, callback) {
         await newActiveItem.save();
 
         ActiveItem.buyItemAlreadyBought({
-          nftAddress: subcollection.nftAddress,
+          nftAddress: need.nftAddress,
           tokenId: tokenCounter,
           school_number: needDetailsBody.donorPhoneNumber
         }, (err, activeItem) => {
@@ -801,7 +820,7 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
   if (body.key == "stamp" || body.key == "shipped" || body.key == "delivered") {
 
     if (typeof body.location.longitude == "number" && typeof body.location.latitude == "number") {
-      ActiveItem.findOne({ tokenId: body.marketplaceTokenId/*, nftAddress: body.nftAddress*/ }, async (err, activeItem) => {
+      ActiveItem.findOne({ tokenId: body.marketplaceTokenId, nftAddress: body.nftAddress }, async (err, activeItem) => {
 
         if (err) return callback(err, null);
 
