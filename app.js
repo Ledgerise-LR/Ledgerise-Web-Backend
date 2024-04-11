@@ -83,6 +83,10 @@ function checkForBuyerPresence(buyerAddress, eachCollaboratorSet) {
   return flag;
 }
 
+/////////////////////////
+////// ActiveItem ///////
+/////////////////////////
+
 app.get("/get-asset", (req, res) => {
 
   ActiveItem.findOne({ tokenId: req.query.tokenId, subcollectionId: req.query.subcollectionId, nftAddress: req.query.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
@@ -236,112 +240,19 @@ app.get("/get-asset", (req, res) => {
   })
 })
 
-app.get("/get-auction", (req, res) => {
-  AuctionItem.findOne({ tokenId: req.query.tokenId }, (err, activeItem) => {
-    res.status(200).json({ activeItem });
-  })
+app.post("/save-real-item-history", (req, res) => {
+  ActiveItem.saveRealItemHistory(req.body.data, (err, activeItem) => {
+    if (err) return res.status(200).json({ err: "QR code doesn't met requirements." });
+    return res.status(200).json({ activeItem });
+  });
 })
 
-app.get("/get-collection", (req, res) => {
-  ActiveItem.sortDefault(req.query, (err, activeItems) => {
-    res.status(200).json({ activeItems: activeItems });
+app.get("/get-all-active-items", (req, res) => {
+  ActiveItem.find({ listingType: "ACTIVE_ITEM" }, (err, activeItems) => {
+    if (err) return res.status(200).json({ err: "bad_request" });
+    return res.status(200).json({ activeItems });
   })
 })
-
-app.get("/get-all-collections", (req, res) => {
-  subcollection.find({}, (err, subcollections) => {
-
-    let resArray = [];
-
-    async.timesSeries(subcollections.length, (i, next) => {
-      const eachSubcollection = subcollections[i];
-
-      Company.findOne({ code: eachSubcollection.companyCode }, (err, company) => {
-        if (err || !company) return res.json({ success: false, err: err });
-
-        const data = {
-          itemId: eachSubcollection.itemId,
-          name: eachSubcollection.name,
-          image: eachSubcollection.image,
-          totalRaised: eachSubcollection.totalRaised,
-          nftAddress: eachSubcollection.nftAddress,
-          charityAddress: company.charityAddress,
-          charityName: company.name,
-          companyImage: company.image,
-        }
-
-        resArray.push(data);
-
-        next();
-      })
-    }, (err) => {
-      if (err) return res.json({ success: false, err: err });
-      res.status(200).json({ subcollections: resArray });
-    })
-  })
-})
-
-app.get("/company/get-all-collections", (req, res) => {
-  subcollection.find({ companyCode: req.session.company.companyCode }, (err, subcollections) => {
-
-    let resArray = [];
-
-    async.timesSeries(subcollections.length, (i, next) => {
-      const eachSubcollection = subcollections[i];
-
-      Company.findOne({ code: eachSubcollection.companyCode }, (err, company) => {
-        if (err || !company) return res.json({ success: false, err: err });
-
-        const data = {
-          itemId: eachSubcollection.itemId,
-          name: eachSubcollection.name,
-          image: eachSubcollection.image,
-          totalRaised: eachSubcollection.totalRaised,
-          charityAddress: company.charityAddress,
-          charityName: company.name,
-          companyImage: company.image,
-        }
-
-        resArray.push(data);
-
-        next();
-      })
-    }, (err) => {
-      if (err) return res.json({ success: false, err: err });
-      res.status(200).json({ subcollections: resArray });
-    })
-  })
-})
-
-app.get("/get-single-collection", (req, res) => {
-  subcollection.findOne({ itemId: req.query.id, nftAddress: req.query.nftAddress }, (err, subcollection) => {
-    res.status(200).json({ subcollection: subcollection });
-  })
-})
-
-
-app.post("/update-subcollection-image", (req, res) => {
-
-  const form = new formidable.IncomingForm();
-
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: 'Error uploading file' });
-    }
-
-    const imageData = fields.image[0];
-    const subcollectionId = fields.subcollectionId[0];
-    const companyCode = fields.companyCode[0];
-    const nftAddress = fields.nftAddress[0];
-
-    subcollection.findOneAndUpdate({ itemId: subcollectionId, nftAddress: nftAddress }, { image: imageData, companyCode, companyCode }, (err, subcollection) => {
-      if (err || !subcollection) return res.json({ success: false, err: err });
-      return res.status(200).json({ success: true, subcollection });
-    })
-  })
-})
-
 
 let randomIndexPrev = 1;
 app.get("/get-random-featured-nft", (req, res) => {
@@ -378,62 +289,24 @@ app.get("/get-random-featured-nft", (req, res) => {
   })
 })
 
-app.get("/sort/price-ascending", (req, res) => {
-  ActiveItem.sortPriceAscending(req.query, (err, docs) => {
-    if (err) return console.log("bad_request");
-    return res.status(200).json({ activeItems: docs });
+app.get("/get-all-visual-verifications", (req, res) => {
+  visualVerification.find({}, (err, visualVerifications) => {
+    if (err) return res.status(400).send(err);
+
+    if (visualVerifications.length) return res.status(200).json({ data: visualVerifications });
   })
 })
 
-app.get("/sort/price-descending", (req, res) => {
-  ActiveItem.sortPriceDescending(req.query, (err, docs) => {
-    if (err) return console.log("bad_request");
-    return res.status(200).json({ activeItems: docs });
+app.post("/active-item/list-item", (req, res) => {
+  ActiveItem.listItem(req.body, (err, activeItem) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.json({ success: true, activeItem: activeItem });
   })
 })
 
-app.get("/sort/oldest", (req, res) => {
-  ActiveItem.sortOldest(req.query, (err, docs) => {
-    if (err) return console.log("bad_request");
-    return res.status(200).json({ activeItems: docs });
-  })
-})
-
-app.get("/sort/newest", (req, res) => {
-  ActiveItem.sortNewest(req.query, (err, docs) => {
-    if (err) return console.log("bad_request");
-    return res.status(200).json({ activeItems: docs });
-  })
-})
-
-app.get("/get-all-items-collection", (req, res) => {
-  ActiveItem.find({ subcollectionId: req.query.subcollectionId, nftAddress: req.query.nftAddress, listingType: "ACTIVE_ITEM" }, (err, docs) => {
-    if (err) return console.log("bad_request");
-    return res.status(200).json({ activeItems: docs });
-  })
-})
-
-
-app.get("/get-all-auction-items", (req, res) => {
-  AuctionItem.find({}, (err, auctionItems) => {
-    if (err) return console.log("bad_request");
-    if (auctionItems) return res.status(200).json({ auctionItems })
-  })
-})
-
-app.post("/save-real-item-history", (req, res) => {
-  ActiveItem.saveRealItemHistory(req.body.data, (err, activeItem) => {
-    if (err) return res.status(200).json({ err: "QR code doesn't met requirements." });
-    return res.status(200).json({ activeItem });
-  });
-})
-
-app.get("/get-all-active-items", (req, res) => {
-  ActiveItem.find({ listingType: "ACTIVE_ITEM" }, (err, activeItems) => {
-    if (err) return res.status(200).json({ err: "bad_request" });
-    return res.status(200).json({ activeItems });
-  })
-})
+////////////////////
+////// Admin ///////
+////////////////////
 
 app.get("/admin/pinata/tokenuri", (req, res) => {
   TokenUri.find({}, (err, tokenUris) => {
@@ -507,54 +380,9 @@ app.post("/admin/pinata/upload", (req, res) => {
 
 })
 
-app.get("/get-all-visual-verifications", (req, res) => {
-  visualVerification.find({}, (err, visualVerifications) => {
-    if (err) return res.status(400).send(err);
-
-    if (visualVerifications.length) return res.status(200).json({ data: visualVerifications });
-  })
-})
-
-
-app.post("/donate/payment", (req, res) => {
-  ActiveItem.buyItem(req.body, (err, activeItem) => {
-    if (err) return res.json({ success: false, err });
-    return res.status(200).json({ success: true, data: activeItem });
-  })
-})
-
-
-app.post("/donate/payment/TRY", async (req, res) => {
-
-  ActiveItem.buyItemCreditCard(req.body, (err, activeItem) => {
-    if (err) return res.json({ success: false, err });
-    return res.status(200).json({ success: true, data: activeItem });
-  })
-})
-
-app.post("/donate/payment/already_bought", async (req, res) => {
-
-  ActiveItem.buyItemAlreadyBought(req.body, (err, activeItem) => {
-    if (err) return res.json({ success: false, err });
-    return res.status(200).json({ success: true, data: activeItem });
-  })
-})
-
-
-app.get("/reports/get-past", (req, res) => {
-  Report.find({ reporter: req.query.reporter }, (err, reports) => {
-    if (err) return res.status(400).json({ err: "bad_request" });
-    return res.status(200).json({ success: true, data: reports });
-  })
-})
-
-app.post("/reports/report-issue", (req, res) => {
-  Report.createNewReport(req.body, (err, report) => {
-    if (err) return res.status(400).json({ err: "bad_request" });
-    return res.status(200).json({ success: true, data: report });
-  })
-})
-
+///////////////////
+////// Auth ///////
+///////////////////
 
 app.post("/auth/login", (req, res) => {
   Donor.loginDonor(req.body, (err, donor) => {
@@ -637,27 +465,62 @@ app.post("/auth/company/create", (req, res) => {
   });
 })
 
-app.post("/donor/get-receipt-data", (req, res) => {
-  ActiveItem.findOne({ tokenId: req.body.tokenId, nftAddress: req.body.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
+app.post("/auth/login-beneficiary", (req, res) => {
+
+  Beneficiary.loginBeneficiary(req.body, (err, beneficiary) => {
     if (err) return res.json({ success: false, err: err });
-    async.timesSeries(activeItem.history.length, (i, next) => {
-      let eachHistory = activeItem.history[i];
+    req.session.beneficiary = beneficiary;
+    return res.json({ success: true, beneficiary: beneficiary });
+  });
+})
 
-      const history = {
-        key: eachHistory.key,
-        date: eachHistory.date,
-        price: eachHistory.price,
-        openseaTokenId: eachHistory.openseaTokenId,
-        subcollectionId: activeItem.subcollectionId
-      }
+/////////////////////////
+////// Beneficiary //////
+/////////////////////////
 
-      if (req.body.buyer && req.body.openseaTokenId && eachHistory.buyer == req.body.buyer && eachHistory.openseaTokenId == req.body.openseaTokenId) return res.status(200).json({ success: true, history });
-      else return next();
+app.post("/beneficiary/get-needs", (req, res) => {
+  Need.find({beneficiary_id: req.body.beneficiary_id}, (err, needs) => {
+    if (err) return res.json({ success: false, err: err });
+    return res.json({ success: true, needs: needs });
+  })
+})
+
+/////////////////////
+////// Company //////
+/////////////////////
+
+app.get("/company/get-all-collections", (req, res) => {
+  subcollection.find({ companyCode: req.session.company.companyCode }, (err, subcollections) => {
+
+    let resArray = [];
+
+    async.timesSeries(subcollections.length, (i, next) => {
+      const eachSubcollection = subcollections[i];
+
+      Company.findOne({ code: eachSubcollection.companyCode }, (err, company) => {
+        if (err || !company) return res.json({ success: false, err: err });
+
+        const data = {
+          itemId: eachSubcollection.itemId,
+          name: eachSubcollection.name,
+          image: eachSubcollection.image,
+          totalRaised: eachSubcollection.totalRaised,
+          charityAddress: company.charityAddress,
+          charityName: company.name,
+          companyImage: company.image,
+        }
+
+        resArray.push(data);
+
+        next();
+      })
     }, (err) => {
-      return res.status(200).json({ success: true, history: "verify_failed" });
+      if (err) return res.json({ success: false, err: err });
+      res.status(200).json({ subcollections: resArray });
     })
   })
 })
+
 
 app.get("/company/get-all", (req, res) => {
   Company.find({}, (err, companyArray) => {
@@ -690,39 +553,81 @@ app.post("/company/get-all-items", (req, res) => {
   })
 })
 
+///////////////////
+////// Depot //////
+///////////////////
 
-app.post("/entegrasyon", (req, res) => {
+app.post("/depot/get-depot-location", (req, res) => {
 
-  CargoCompany.getOrderDetails(req.body, (err, data) => {
+  DepotLocation.findOne({ depotName: req.body.depotName }, (err, depot) => {
     if (err) return res.json({ success: false, err: err });
-    return res.json({ success: true, data: data });
+    return res.json({
+      success: true,
+      depotLocation: depot.depotLocation
+    })
   })
-});
 
-
-app.post("/auth/login-beneficiary", (req, res) => {
-
-  Beneficiary.loginBeneficiary(req.body, (err, beneficiary) => {
-    if (err) return res.json({ success: false, err: err });
-    req.session.beneficiary = beneficiary;
-    return res.json({ success: true, beneficiary: beneficiary });
-  });
 })
 
-app.post("/beneficiary/request-need", (req, res) => {
 
-  Need.addNewNeed(req.body, (err, need) => {
-    if (err) return res.json({ success: false, err: err });
-    return res.json({ success: true, need: need });
-  });
-})
+////////////////////
+////// Donate //////
+////////////////////
 
-app.post("/beneficiary/get-needs", (req, res) => {
-  Need.find({beneficiary_id: req.body.beneficiary_id}, (err, needs) => {
-    if (err) return res.json({ success: false, err: err });
-    return res.json({ success: true, needs: needs });
+
+app.post("/donate/payment", (req, res) => {
+  ActiveItem.buyItem(req.body, (err, activeItem) => {
+    if (err) return res.json({ success: false, err });
+    return res.status(200).json({ success: true, data: activeItem });
   })
 })
+
+app.post("/donate/payment/TRY", async (req, res) => {
+
+  ActiveItem.buyItemCreditCard(req.body, (err, activeItem) => {
+    if (err) return res.json({ success: false, err });
+    return res.status(200).json({ success: true, data: activeItem });
+  })
+})
+
+app.post("/donate/payment/already_bought", async (req, res) => {
+
+  ActiveItem.buyItemAlreadyBought(req.body, (err, activeItem) => {
+    if (err) return res.json({ success: false, err });
+    return res.status(200).json({ success: true, data: activeItem });
+  })
+})
+
+///////////////////
+////// Donor //////
+///////////////////
+
+
+app.post("/donor/get-receipt-data", (req, res) => {
+  ActiveItem.findOne({ tokenId: req.body.tokenId, nftAddress: req.body.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
+    if (err) return res.json({ success: false, err: err });
+    async.timesSeries(activeItem.history.length, (i, next) => {
+      let eachHistory = activeItem.history[i];
+
+      const history = {
+        key: eachHistory.key,
+        date: eachHistory.date,
+        price: eachHistory.price,
+        openseaTokenId: eachHistory.openseaTokenId,
+        subcollectionId: activeItem.subcollectionId
+      }
+
+      if (req.body.buyer && req.body.openseaTokenId && eachHistory.buyer == req.body.buyer && eachHistory.openseaTokenId == req.body.openseaTokenId) return res.status(200).json({ success: true, history });
+      else return next();
+    }, (err) => {
+      return res.status(200).json({ success: true, history: "verify_failed" });
+    })
+  })
+})
+
+//////////////////
+////// Need //////
+//////////////////
 
 app.get("/needs/get-all-needs", (req, res) => {
   Need.find({}, (err, needs) => {
@@ -730,43 +635,6 @@ app.get("/needs/get-all-needs", (req, res) => {
     return res.json({ success: true, needs: needs });
   })
 })
-
-app.post("/beneficiary/get-needs-temp", (req, res) => {
-
-  let activeItemArr = [];
-
-  async.timesSeries(req.body.needs.length, (i, next) => {
-
-    const needId = req.body.needs[i];
-
-    ActiveItem.findById(needId, (err, activeItem) => {
-      if (err) return res.json({ success: false, err: err });
-
-      const activeItemObj = {
-        tokenUri: activeItem.tokenUri,
-        availableEditions: activeItem.availableEditions,
-        history: activeItem.history,
-        tokenId: activeItem.tokenId,
-        subcollectionId: activeItem.subcollectionId
-      };
-
-      activeItemArr.push(activeItemObj);
-      next();
-    })
-  }, (err) => {
-    if (err) return res.json({ success: false, err: err });
-    return res.json({ success: true, activeItems: activeItemArr }); 
-  })
-})
-
-
-app.post("/active-item/list-item", (req, res) => {
-  ActiveItem.listItem(req.body, (err, activeItem) => {
-    if (err) return res.json({ success: false, err: err });
-    return res.json({ success: true, activeItem: activeItem });
-  })
-})
-
 
 app.post("/need/create", (req, res) => {
   ActiveItem.createNeed(req.body, (err, need) => {
@@ -821,16 +689,138 @@ app.post("/needs/get-satisfied-donations-of-donor", (req, res) => {
   })
 })
 
-app.post("/depot/get-depot-location", (req, res) => {
+/////////////////////
+////// Reports //////
+/////////////////////
 
-  DepotLocation.findOne({ depotName: req.body.depotName }, (err, depot) => {
+
+app.get("/reports/get-past", (req, res) => {
+  Report.find({ reporter: req.query.reporter }, (err, reports) => {
+    if (err) return res.status(400).json({ err: "bad_request" });
+    return res.status(200).json({ success: true, data: reports });
+  })
+})
+
+app.post("/reports/report-issue", (req, res) => {
+  Report.createNewReport(req.body, (err, report) => {
+    if (err) return res.status(400).json({ err: "bad_request" });
+    return res.status(200).json({ success: true, data: report });
+  })
+})
+
+///////////////////////////
+////// Subcollection //////
+///////////////////////////
+
+app.post("/create-subcollection", (req, res) => {
+  ActiveItem.createSubcollection(req.body, (err, subcollection) => {
     if (err) return res.json({ success: false, err: err });
-    return res.json({
-      success: true,
-      depotLocation: depot.depotLocation
+    return res.json({ success: true, subcollection: subcollection });
+  })
+})
+
+app.get("/get-collection", (req, res) => {
+  ActiveItem.sortDefault(req.query, (err, activeItems) => {
+    res.status(200).json({ activeItems: activeItems });
+  })
+})
+
+app.get("/get-all-collections", (req, res) => {
+  subcollection.find({}, (err, subcollections) => {
+
+    let resArray = [];
+
+    async.timesSeries(subcollections.length, (i, next) => {
+      const eachSubcollection = subcollections[i];
+
+      Company.findOne({ code: eachSubcollection.companyCode }, (err, company) => {
+        if (err || !company) return res.json({ success: false, err: err });
+
+        const data = {
+          itemId: eachSubcollection.itemId,
+          name: eachSubcollection.name,
+          image: eachSubcollection.image,
+          totalRaised: eachSubcollection.totalRaised,
+          nftAddress: eachSubcollection.nftAddress,
+          charityAddress: company.charityAddress,
+          charityName: company.name,
+          companyImage: company.image,
+        }
+
+        resArray.push(data);
+
+        next();
+      })
+    }, (err) => {
+      if (err) return res.json({ success: false, err: err });
+      res.status(200).json({ subcollections: resArray });
     })
   })
+})
 
+
+app.get("/get-single-collection", (req, res) => {
+  subcollection.findOne({ itemId: req.query.id, nftAddress: req.query.nftAddress }, (err, subcollection) => {
+    res.status(200).json({ subcollection: subcollection });
+  })
+})
+
+
+app.post("/update-subcollection-image", (req, res) => {
+
+  const form = new formidable.IncomingForm();
+
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error uploading file' });
+    }
+
+    const imageData = fields.image[0];
+    const subcollectionId = fields.subcollectionId[0];
+    const companyCode = fields.companyCode[0];
+    const nftAddress = fields.nftAddress[0];
+
+    subcollection.findOneAndUpdate({ itemId: subcollectionId, nftAddress: nftAddress }, { image: imageData, companyCode, companyCode }, (err, subcollection) => {
+      if (err || !subcollection) return res.json({ success: false, err: err });
+      return res.status(200).json({ success: true, subcollection });
+    })
+  })
+})
+
+app.get("/sort/price-ascending", (req, res) => {
+  ActiveItem.sortPriceAscending(req.query, (err, docs) => {
+    if (err) return console.log("bad_request");
+    return res.status(200).json({ activeItems: docs });
+  })
+})
+
+app.get("/sort/price-descending", (req, res) => {
+  ActiveItem.sortPriceDescending(req.query, (err, docs) => {
+    if (err) return console.log("bad_request");
+    return res.status(200).json({ activeItems: docs });
+  })
+})
+
+app.get("/sort/oldest", (req, res) => {
+  ActiveItem.sortOldest(req.query, (err, docs) => {
+    if (err) return console.log("bad_request");
+    return res.status(200).json({ activeItems: docs });
+  })
+})
+
+app.get("/sort/newest", (req, res) => {
+  ActiveItem.sortNewest(req.query, (err, docs) => {
+    if (err) return console.log("bad_request");
+    return res.status(200).json({ activeItems: docs });
+  })
+})
+
+app.get("/get-all-items-collection", (req, res) => {
+  ActiveItem.find({ subcollectionId: req.query.subcollectionId, nftAddress: req.query.nftAddress, listingType: "ACTIVE_ITEM" }, (err, docs) => {
+    if (err) return console.log("bad_request");
+    return res.status(200).json({ activeItems: docs });
+  })
 })
 
 server.listen(PORT, async () => {

@@ -316,14 +316,6 @@ activeItemSchema.statics.sortNewest = function (body, callback) {
   });
 }
 
-// const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
-
-// const provider = new ethers.providers.WebSocketProvider(process.env.URL);
-// const signer = new ethers.Wallet(
-//   `0x${process.env.OWNER_PRIVATE_KEY}`,
-//   provider
-// )
-
 activeItemSchema.statics.listItem = async function (body, callback) {
 
   Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId }, async (err, subcollection) => {
@@ -878,6 +870,58 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
   }
 }
 
+
+activeItemSchema.statics.createSubcollection = async function (body, callback) {
+
+  const mainCollectionAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
+
+
+  const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
+  const ledgeriseLensAddress = networkMapping["LedgeriseLens"][process.env.ACTIVE_CHAIN_ID];
+
+
+  const provider = new ethers.providers.WebSocketProvider(process.env.URL);
+  const signer = new ethers.Wallet(
+    `0x${process.env.OWNER_PRIVATE_KEY}`,
+    provider
+  )
+
+  const mainCollectionAbi = require(`../constants/abis/${mainCollectionAddress}.json`);
+
+  const mainCollection = new ethers.Contract(mainCollectionAddress, mainCollectionAbi, signer);
+
+  const id = await mainCollection.getSubcollectionCounter();
+
+  const createSubcollectionBlockchain = {
+    itemId: id.toString(),
+    name: req.body.name.toString(),
+    charityAddress: req.body.charityAddress.toString(),
+    nftAddress: mainCollectionAddress,
+    marketplaceAddress: marketplaceAddress,
+    ledgeriseLensAddress: ledgeriseLensAddress,
+    providerUrl: process.env.URL,
+    image: req.body.image,
+    companyCode: req.body.companyCode
+  }
+
+  const newSubcollection = new Subcollection(body);
+  if (newSubcollection) {
+
+    const createSubcollectionTx = await mainCollection.createSubcollection(
+      createSubcollectionBlockchain.name,
+      createSubcollectionBlockchain.charityAddress,
+      []
+    );
+
+    const createSubcollectionTxReceipt = await createSubcollectionTx.wait(1);
+
+    newSubcollection.transactionHash = createSubcollectionTxReceipt.transactionHash;
+
+    newSubcollection.save();
+    return callback(null, newSubcollection);
+  }
+  return callback("bad_request");
+}
 
 
 const ActiveItem = mongoose.model("ActiveItem", activeItemSchema);
