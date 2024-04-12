@@ -126,6 +126,72 @@ companySchema.statics.getAllItems = function (body, callback) {
   })
 }
 
+companySchema.statics.getAllCollectionsOfCompany = async function (body, callback) {
+
+  subcollection.find({ companyCode: body.companyCode }, (err, subcollections) => {
+
+    let resArray = [];
+
+    async.timesSeries(subcollections.length, (i, next) => {
+      const eachSubcollection = subcollections[i];
+
+      Company.findOne({ code: eachSubcollection.companyCode }, (err, company) => {
+        if (err || !company) return callback(err);
+
+        const data = {
+          itemId: eachSubcollection.itemId,
+          name: eachSubcollection.name,
+          image: eachSubcollection.image,
+          totalRaised: eachSubcollection.totalRaised,
+          charityAddress: company.charityAddress,
+          charityName: company.name,
+          companyImage: company.image,
+        }
+
+        resArray.push(data);
+
+        next();
+      })
+    }, (err) => {
+      if (err) return callback(err);
+      callback(null, resArray);
+    })
+  })
+}
+
+companySchema.statics.getAllCollections = async function (body, callback) {
+  subcollection.find({}, (err, subcollections) => {
+
+    let resArray = [];
+
+    async.timesSeries(subcollections.length, (i, next) => {
+      const eachSubcollection = subcollections[i];
+
+      Company.findOne({ code: eachSubcollection.companyCode }, (err, company) => {
+        if (err || !company) return res.json({ success: false, err: err });
+
+        const data = {
+          itemId: eachSubcollection.itemId,
+          name: eachSubcollection.name,
+          image: eachSubcollection.image,
+          totalRaised: eachSubcollection.totalRaised,
+          nftAddress: eachSubcollection.nftAddress,
+          charityAddress: company.charityAddress,
+          charityName: company.name,
+          companyImage: company.image,
+        }
+
+        resArray.push(data);
+
+        next();
+      })
+    }, (err) => {
+      if (err) return callback(err);
+      return callback(null, resArray);
+    })
+  })
+}
+
 const Company = mongoose.model("company", companySchema);
 
 module.exports = Company

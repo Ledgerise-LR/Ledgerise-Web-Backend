@@ -73,6 +73,13 @@ donorSchema.statics.loginDonor = function (body, callback) {
   })
 }
 
+donorSchema.statics.authenticateDonor = function (body, callback) {
+  Donor.findById(body._id, (err, donor) => {
+    if (err || !donor) return callback("auth_error");
+    return callback(null, donor);
+  })
+}
+
 const Donor = mongoose.model("donor", donorSchema);
 
 module.exports = Donor

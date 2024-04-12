@@ -46,6 +46,10 @@ const subcollectionSchema = new mongoose.Schema({
   providerUrl: {
     type: String,
     default: ""
+  },
+
+  transactionHash: {
+    type: String
   }
 });
 

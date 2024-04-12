@@ -14,6 +14,7 @@ const Donor = require("./Donor");
 const {v4: uuidv4} = require("uuid");
 const Need = require("./Need");
 const Beneficiary = require("./Beneficiary");
+const { checkForBuyerPresence } = require("../utils/checkForBuyerPresence");
 
 require("dotenv").config();
 
@@ -894,17 +895,17 @@ activeItemSchema.statics.createSubcollection = async function (body, callback) {
 
   const createSubcollectionBlockchain = {
     itemId: id.toString(),
-    name: req.body.name.toString(),
-    charityAddress: req.body.charityAddress.toString(),
+    name: body.name.toString(),
+    charityAddress: "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
     nftAddress: mainCollectionAddress,
     marketplaceAddress: marketplaceAddress,
     ledgeriseLensAddress: ledgeriseLensAddress,
     providerUrl: process.env.URL,
-    image: req.body.image,
-    companyCode: req.body.companyCode
+    image: body.image,
+    companyCode: body.companyCode
   }
 
-  const newSubcollection = new Subcollection(body);
+  const newSubcollection = new Subcollection(createSubcollectionBlockchain);
   if (newSubcollection) {
 
     const createSubcollectionTx = await mainCollection.createSubcollection(
@@ -921,6 +922,256 @@ activeItemSchema.statics.createSubcollection = async function (body, callback) {
     return callback(null, newSubcollection);
   }
   return callback("bad_request");
+}
+
+activeItemSchema.statics.getSatisfiedDonationsOfDonor = async function (body, callback) {
+  let needItemsArray = [];
+
+  ActiveItem.find({ listingType: "NEED_ITEM", buyer: body.buyer }, (err, needItems) => {
+    if (err) return callback(err);
+
+    async.timesSeries(needItems.length, (i, next) => {
+      const needItem = needItems[i];
+
+      NeedDetail.findById(needItem.needDetails, (err, needDetails) => {
+        if (err) return callback(err);
+
+        Need.findOne({ nftAddress: needItem.nftAddress, needTokenId: needDetails.needTokenId }, (err, need) => {
+
+          if (err) return callback(err);
+
+          needItemsArray.push({
+            needItem: needItem,
+            needDetails: needDetails,
+            need: need
+          });
+          next();
+        })
+      })
+    }, (err) => {
+      if (err) return callback(err);
+
+      return callback(null, needItemsArray);
+    })
+  })
+}
+
+
+activeItemSchema.statics.getAsset = async function (body, callback) {
+  ActiveItem.findOne({ tokenId: body.tokenId, subcollectionId: body.subcollectionId, nftAddress: body.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
+    const groupedObjects = {};
+
+    if (!err && activeItem) {
+      async.timesSeries(activeItem.real_item_history.length, (i, next) => {
+        const obj = activeItem.real_item_history[i];
+
+        const tokenId = obj.openseaTokenId;
+        if (!groupedObjects[tokenId]) {
+          groupedObjects[tokenId] = [];
+        }
+
+        groupedObjects[tokenId].push(obj);
+        next()
+      }, async (err) => {
+
+        const groupedArray = Object.values(groupedObjects);
+
+        TokenUri.findOne({ tokenUri: activeItem.tokenUri }, (err, tokenUriObject) => {
+          const tokenName = tokenUriObject.name.trim();
+          const tokenNameArray = tokenName.split("/");
+
+
+          if (parseInt(tokenNameArray[0].split("(")[1]) == 1 &&
+            typeof parseInt(tokenNameArray[1].split(")")[0]) == "number") {
+
+            const numberOfCollaborators = parseInt(tokenNameArray[1].split(")")[0]);
+            const collaboratorClustersSet = [];
+            const priorityList = [];
+            let eachCollaboratorSet = [];
+            async.timesSeries(activeItem.history.length, (j, next) => {
+
+              if (eachCollaboratorSet.length == numberOfCollaborators) {
+                collaboratorClustersSet.push(eachCollaboratorSet);
+                eachCollaboratorSet = [];
+              }
+
+              if (activeItem.history[j].key == "buy") {
+
+                let flag = checkForBuyerPresence(activeItem.history[j].buyer, eachCollaboratorSet);
+
+                if (flag) {
+                  eachCollaboratorSet.push(`${activeItem.history[j].openseaTokenId}_${activeItem.history[j].buyer}`);
+                }
+                else if (!flag) priorityList.push(`${activeItem.history[j].openseaTokenId}_${activeItem.history[j].buyer}`);
+              }
+
+              next();
+            }, (err) => {
+              if (eachCollaboratorSet.length) {
+                collaboratorClustersSet.push(eachCollaboratorSet);
+              }
+
+              async.timesSeries(collaboratorClustersSet.length, (k, nextK) => {
+                const eachCollaboratorSet = collaboratorClustersSet[k];
+                if (eachCollaboratorSet.length == numberOfCollaborators) {
+                  return nextK();
+                } else {
+                  if (priorityList.length) {
+                    async.timesSeries(priorityList.length, (l, nextL) => {
+                      if (priorityList[l]) {
+                        let flagL = checkForBuyerPresence(priorityList[l].split("_")[1], eachCollaboratorSet);
+                        if (eachCollaboratorSet.length == numberOfCollaborators) return nextK();
+                        else if (flagL) {
+                          eachCollaboratorSet.push(priorityList[l]);
+                          priorityList.splice(l, 1);
+                          return nextL();
+                        } else {
+                          return nextL();
+                        }
+                      } else {
+                        nextL();
+                      }
+                    }, (err) => {
+                      nextK();
+                    })
+                  } else {
+                    nextK();
+                  }
+                }
+              }, (err) => {
+                if (priorityList.length) {
+                  async.timesSeries(priorityList.length, (m, nextM) => {
+                    const arr = [priorityList[m]];
+                    collaboratorClustersSet.push(arr);
+                    nextM();
+                  }, (err) => {
+                    return callback(
+                      null,
+                      {
+                        seller: activeItem.seller,
+                        nftAddress: activeItem.nftAddress,
+                        tokenId: activeItem.tokenId,
+                        charityAddress: activeItem.charityAddress,
+                        tokenUri: activeItem.tokenUri,
+                        price: activeItem.price,
+                        availableEditions: activeItem.availableEditions,
+                        subcollectionId: activeItem.subcollectionId,
+                        history: activeItem.history,
+                        attributes: activeItem.attributes,
+                        real_item_history: groupedArray,
+                        route: activeItem.route,
+                        collaborators: collaboratorClustersSet
+                      }
+                    );
+                  })
+                } else {
+                  return callback(
+                    null,
+                    {
+                      seller: activeItem.seller,
+                      nftAddress: activeItem.nftAddress,
+                      tokenId: activeItem.tokenId,
+                      charityAddress: activeItem.charityAddress,
+                      tokenUri: activeItem.tokenUri,
+                      price: activeItem.price,
+                      availableEditions: activeItem.availableEditions,
+                      subcollectionId: activeItem.subcollectionId,
+                      history: activeItem.history,
+                      attributes: activeItem.attributes,
+                      real_item_history: groupedArray,
+                      route: activeItem.route,
+                      collaborators: collaboratorClustersSet
+                    }
+                  );
+                }
+              })
+            })
+          } else {
+            return callback(
+              null,
+              {
+                seller: activeItem.seller,
+                nftAddress: activeItem.nftAddress,
+                tokenId: activeItem.tokenId,
+                charityAddress: activeItem.charityAddress,
+                tokenUri: activeItem.tokenUri,
+                price: activeItem.price,
+                availableEditions: activeItem.availableEditions,
+                subcollectionId: activeItem.subcollectionId,
+                history: activeItem.history,
+                attributes: activeItem.attributes,
+                real_item_history: groupedArray,
+                route: activeItem.route,
+                collaborators: []
+              }
+            );
+          }
+        })
+      })
+    }
+  })
+}
+
+
+let randomIndexPrev = 1;
+
+activeItemSchema.statics.getRandomFeaturedAsset = async function (body, callback) {
+  ActiveItem.find({ listingType: "ACTIVE_ITEM" }, (err, activeItems) => {
+    if (err) return callback("bad_request");
+    let randomIndex;
+    if (activeItems.length == 1) {
+      randomIndex = 0;
+    } else {
+      do {
+        randomIndex = Math.floor(Math.random() * activeItems.length);
+      } while (randomIndex == randomIndexPrev);
+    }
+    if (activeItems.length <= 0) {
+      return callback("no_assets_found");
+    }
+    Subcollection.findOne({ itemId: activeItems[randomIndex].subcollectionId }, (err, collection) => {
+      randomIndexPrev = randomIndex;
+
+      return callback(
+        null,
+        {
+          tokenId: activeItems[randomIndex].tokenId,
+          tokenUri: activeItems[randomIndex].tokenUri,
+          price: activeItems[randomIndex].price,
+          totalRaised: collection.totalRaised,
+          collectionName: collection.name,
+          charityAddress: collection.charityAddress,
+          nftAddress: activeItems[randomIndex].nftAddress,
+          totalDonated: activeItems[randomIndex].history.filter(historyEvent => historyEvent.key == "buy").length,
+          subcollectionId: activeItems[randomIndex].subcollectionId
+        }
+      );
+    })
+  })
+}
+
+
+activeItemSchema.statics.getReceiptData = async function (body, callback) {
+  ActiveItem.findOne({ tokenId: body.tokenId, nftAddress: body.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
+    if (err) return callback("cannot_get_active_item");
+    async.timesSeries(activeItem.history.length, (i, next) => {
+      let eachHistory = activeItem.history[i];
+
+      const history = {
+        key: eachHistory.key,
+        date: eachHistory.date,
+        price: eachHistory.price,
+        openseaTokenId: eachHistory.openseaTokenId,
+        subcollectionId: activeItem.subcollectionId
+      }
+
+      if (body.buyer && body.openseaTokenId && eachHistory.buyer == body.buyer && eachHistory.openseaTokenId == body.openseaTokenId) return callback(null, history);
+      else return next();
+    }, (err) => {
+      if (err) return callback("fetch_error");
+      return callback("verify_failed");
+    })
+  })
 }
 
 
