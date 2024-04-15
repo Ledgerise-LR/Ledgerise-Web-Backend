@@ -13,7 +13,7 @@ const registerDonorPostController = require("../controllers/auth/post/registerDo
 const loginVerifierPostController = require("../controllers/auth/post/loginVerifierPostController");
 const createCompanyPostController = require("../controllers/auth/post/createCompanyPostController");
 const loginBeneficiaryPostController = require("../controllers/auth/post/loginBeneficiaryPostController");
-
+const registerBeneficiaryPostController = require("../controllers/auth/post/registerBeneficiaryPostController.js");
 
 router.get(
   "/authenticate-verifier", 
@@ -58,6 +58,11 @@ router.post(
 router.post(
   "/login-beneficiary", 
   loginBeneficiaryPostController
+);
+
+router.post(
+  "/register-beneficiary",
+  registerBeneficiaryPostController
 );
 
 module.exports = router;

@@ -10,7 +10,7 @@ const isDonorLoggedIn = require("../middleware/isDonorLoggedIn");
 
 
 router.post(
-  "/payment/crypto", 
+  "/payment/crypto/eth", 
   isDonorLoggedIn,
   donateCryptoPostController
 );

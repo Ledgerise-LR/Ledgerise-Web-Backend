@@ -1,7 +1,6 @@
 
 const mongoose = require("mongoose");
-const axios = require("axios");
-const base64 = require("base-64");
+const networkMapping = require("../constants/networkMapping.json");
 
 const beneficiarySchema = new mongoose.Schema({
 
@@ -39,6 +38,10 @@ const beneficiarySchema = new mongoose.Schema({
 
   subcollectionId: {
     type: Number
+  },
+
+  marketplaceAddress: {
+    type: String
   }
 });
 
@@ -64,6 +67,31 @@ beneficiarySchema.statics.authenticateBeneficiary = function (body, callback) {
   Beneficiary.findById(body._id, (err, beneficiary) => {
     if (err || !beneficiary) return callback("auth_error");
     if (beneficiary && beneficiary._id == body._id) return callback(null, beneficiary);
+  })
+}
+
+beneficiarySchema.statics.createBeneficiary = async function (body, callback) {
+
+  const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
+
+  const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
+
+  const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
+
+  const provider = new ethers.providers.WebSocketProvider(subcollection.providerUrl);
+  const signer = new ethers.Wallet(
+    `0x${process.env.OWNER_PRIVATE_KEY}`,
+    provider
+  )
+
+  const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+
+  const addBeneficiaryTx = await marketplace.addBeneficiary(nftAddress, body.phoneNumber);
+  await addBeneficiaryTx.wait(1);
+
+  Beneficiary.addNewBeneficiary(body, (err, beneficiary) => {
+    if (err) return callback(err);
+    return callback(null, beneficiary);
   })
 }
 

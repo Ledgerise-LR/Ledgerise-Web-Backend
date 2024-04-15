@@ -10,6 +10,9 @@ const getAllVisualVerificationsGetController = require("../controllers/activeIte
 
 // POST
 const listActiveItemPostController = require("../controllers/activeItem/post/listActiveItemPostController");
+const getVisualVerificationsOfItemPostController = require("../controllers/activeItem/post/getVisualVerificationsOfItemPostController");
+const markQrCodeAsPrintedPostController = require("../controllers/activeItem/post/markQrCodeAsPrintedPostController.js")
+
 const isVerifierLoggedIn = require("../middleware/isVerifierLoggedIn");
 
 
@@ -18,7 +21,7 @@ router.get(
   getAssetGetController
 );
 
-router.get(
+router.post(
   "/get-all-active-items", 
   getAllActiveItemsGetController
 );
@@ -34,9 +37,20 @@ router.get(
 );
 
 router.post(
+  "/get-visual-verifications-filter",
+  getVisualVerificationsOfItemPostController
+);
+
+router.post(
   "/list-item", 
   isVerifierLoggedIn,
   listActiveItemPostController
 );
+
+router.post(
+  "/mark-qr-code-as-printed",
+  isVerifierLoggedIn,
+  markQrCodeAsPrintedPostController
+)
 
 module.exports = router;

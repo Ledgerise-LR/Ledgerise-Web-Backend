@@ -35,7 +35,7 @@ let nftAddress = "";
 
 var socketConnection = "";
 
-const connectRealTime = (server, nftAddress) => {
+const connectRealTime = (server) => {
   const io = socketIo(server);
   const realtimeNamespace = io.of('/realtime');
 

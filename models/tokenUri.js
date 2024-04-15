@@ -10,6 +10,9 @@ const tokenUriSchema = new mongoose.Schema({
   tokenUri: {
     type: String,
     required: true
+  },
+  companyCode: {
+    type: String
   }
 });
 
@@ -79,7 +82,7 @@ tokenUriSchema.statics.createTokenUri = async function (req, callback) {
       tokenUris.push(`ipfs://${metaDataUploadResponse.IpfsHash}`);
     }
 
-    TokenUri.addNewTokenUri({ name: imageName, tokenUri: tokenUris[0] }, (err, newTokenUri) => {
+    TokenUri.addNewTokenUri({ name: imageName, tokenUri: tokenUris[0], companyCode: req.session.company.code }, (err, newTokenUri) => {
       if (err) return callback("bad_request");
       return callback(null, newTokenUri);
     });

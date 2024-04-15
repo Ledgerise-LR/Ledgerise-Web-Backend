@@ -2,7 +2,6 @@
 const mongoose = require("mongoose");
 const networkMapping = require("../constants/networkMapping.json");
 const ethers = require("ethers");
-const abi = require("../constants/abi.json");
 const async = require("async");
 const saveToBlockchain = require("../listeners/saveRealItemHistory");
 const visualVerification = require("./VisualVerification");
@@ -337,7 +336,7 @@ activeItemSchema.statics.listItem = async function (body, callback) {
     const listItemBody = {
       itemId: `${subcollection.nftAddress}-${tokenCounter}`,
       seller: "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
-      charityAddress: body.charityAddress,
+      charityAddress: "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
       buyer: "0x00000",
       nftAddress: subcollection.nftAddress,
       tokenId: tokenCounter,
@@ -358,7 +357,7 @@ activeItemSchema.statics.listItem = async function (body, callback) {
         subcollection.nftAddress,
         tokenCounter,
         body.price,
-        body.charityAddress,
+        "0x6FaEbbE2b593B5577E349dc37A0f97cD212238D2",
         body.tokenUri,
         subcollection.itemId,
         body.availableEditions,
@@ -406,8 +405,8 @@ activeItemSchema.statics.createNeed = async function (body, callback) {
         beneficiary_id: body.beneficiary_id,
         timestamp: "",
         location: {
-          latitude: 41007,
-          longitude: 29195
+          latitude: body.latitude,
+          longitude: body.longitude
         },
         marketplaceAddress: marketplaceAddress,
         ledgeriseLensAddress: networkMapping["LedgeriseLens"][process.env.ACTIVE_CHAIN_ID],
@@ -533,8 +532,11 @@ activeItemSchema.statics.listNeedItem = async function (body, callback) {
         ActiveItem.buyItemAlreadyBought({
           nftAddress: need.nftAddress,
           tokenId: tokenCounter,
-          school_number: needDetailsBody.donorPhoneNumber
+          phone_number: needDetailsBody.donorPhoneNumber
         }, (err, activeItem) => {
+
+          need.currentSatisfiedNeedQuantity += 1;
+          need.save()
 
           if (err) return console.log("list_need_failed");
           return callback(null, activeItem);
@@ -566,10 +568,10 @@ activeItemSchema.statics.buyItem = async function (body, callback) {
         const buyItemTx = await marketplace.connect(signer).buyItem(
           body.nftAddress,
           body.tokenId,
-          body.charityAddress,
-          body.tokenUri,
+          activeItem.charityAddress,
+          activeItem.tokenUri,
           body.ownerAddressString,
-          { value: body.price }
+          { value: activeItem.price }
         )
       
         const buyItemTxReceipt = await buyItemTx.wait(1);
@@ -587,14 +589,14 @@ activeItemSchema.statics.buyItem = async function (body, callback) {
         const historyObject = {
           key: "buy",
           date: formattedDate,
-          price: body.price,
+          price: activeItem.price,
           buyer: body.ownerAddressString,
           openseaTokenId: parseInt(args.openseaTokenId),
           transactionHash: buyItemTxReceipt.transactionHash
         }
         activeItem.history.push(historyObject);
 
-        subcollection.totalRaised = (Number(subcollection.totalRaised) + Number(ethers.utils.formatEther(body.price, "ether"))).toString();
+        subcollection.totalRaised = (Number(subcollection.totalRaised) + Number(ethers.utils.formatEther(activeItem.price, "ether"))).toString();
 
         activeItem.save();
         subcollection.save();
@@ -628,14 +630,14 @@ activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) 
         activeItem.charityAddress,
         activeItem.tokenUri,
         activeItem.price,
-        body.school_number
+        body.phone_number
       )
 
       const buyItemTxReceipt = await buyItemTx.wait(1);
 
       const args = buyItemTxReceipt.events[2].args;
 
-      activeItem.buyer = body.school_number;
+      activeItem.buyer = body.phone_number;
       activeItem.availableEditions = activeItem.availableEditions - 1;
 
       const currentDate = new Date();
@@ -647,7 +649,7 @@ activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) 
         key: "buy",
         date: formattedDate,
         price: activeItem.price,
-        buyer: body.school_number,
+        buyer: body.phone_number,
         openseaTokenId: parseInt(args.openseaTokenId),
         transactionHash: buyItemTxReceipt.transactionHash
       }
@@ -674,9 +676,9 @@ activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
     uri: 'https://sandbox-api.iyzipay.com'
   })
 
-  const {tokenURI, nftAddress, donorId, cardHolderName, cardNumber, expiryMonth, expiryYear, CVV, tokenName, tokenId, charityAddress} = body;
+  const {nftAddress, donorId, cardHolderName, cardNumber, expiryMonth, expiryYear, CVV, tokenName, tokenId} = body;
 
-  ActiveItem.findOne({tokenId: tokenId}, (err, activeItem) => {
+  ActiveItem.findOne({tokenId: tokenId, nftAdress: nftAddress}, (err, activeItem) => {
     if (err || !activeItem) return callback("bought_failed");
 
     Donor.findById(donorId, (err, donor) => {
@@ -763,17 +765,17 @@ activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
               const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
                 nftAddress,
                 tokenId,
-                charityAddress,
-                tokenURI,
+                activeItem.charityAddress,
+                activeItem.tokenUri,
                 activeItem.price,
-                donor.school_number
+                donor.phone_number
               )
             
               const buyItemTxReceipt = await buyItemTx.wait(1);
 
               const args = buyItemTxReceipt.events[2].args;
 
-              activeItem.buyer = donor.school_number;
+              activeItem.buyer = donor.phone_number;
               activeItem.availableEditions = activeItem.availableEditions - 1;
 
               const currentDate = new Date();
@@ -785,7 +787,7 @@ activeItemSchema.statics.buyItemCreditCard = async function (body, callback) {
                 key: "buy",
                 date: formattedDate,
                 price: activeItem.price,
-                buyer: donor.school_number,
+                buyer: donor.phone_number,
                 openseaTokenId: parseInt(args.openseaTokenId),
                 transactionHash: buyItemTxReceipt.transactionHash
               }
@@ -1060,6 +1062,7 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                         attributes: activeItem.attributes,
                         real_item_history: groupedArray,
                         route: activeItem.route,
+                        listTransactionHash: activeItem.transactionHash,
                         collaborators: collaboratorClustersSet
                       }
                     );
@@ -1080,6 +1083,7 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                       attributes: activeItem.attributes,
                       real_item_history: groupedArray,
                       route: activeItem.route,
+                      listTransactionHash: activeItem.transactionHash,
                       collaborators: collaboratorClustersSet
                     }
                   );
@@ -1102,6 +1106,7 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                 attributes: activeItem.attributes,
                 real_item_history: groupedArray,
                 route: activeItem.route,
+                listTransactionHash: activeItem.transactionHash,
                 collaborators: []
               }
             );
@@ -1152,7 +1157,7 @@ activeItemSchema.statics.getRandomFeaturedAsset = async function (body, callback
 
 
 activeItemSchema.statics.getReceiptData = async function (body, callback) {
-  ActiveItem.findOne({ tokenId: body.tokenId, nftAddress: body.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
+  ActiveItem.findOne({ tokenId: body.tokenId, nftAddress: body.nftAddress /*, listingType: "ACTIVE_ITEM"*/ }, (err, activeItem) => {
     if (err) return callback("cannot_get_active_item");
     async.timesSeries(activeItem.history.length, (i, next) => {
       let eachHistory = activeItem.history[i];
@@ -1170,6 +1175,37 @@ activeItemSchema.statics.getReceiptData = async function (body, callback) {
     }, (err) => {
       if (err) return callback("fetch_error");
       return callback("verify_failed");
+    })
+  })
+}
+
+
+activeItemSchema.statics.markQrCodeAsPrinted = async function (body, callback) {
+  const tokenId = body.tokenId;
+  const nftAddress = body.nftAddress;
+  const openseaTokenIdArray = body.openseaTokenIdArray;
+
+  ActiveItem.findOne({ tokenId: tokenId, nftAddress: nftAddress }, (err, activeItem) => {
+    async.timesSeries(openseaTokenIdArray.length, (i, next1) => {
+    
+      const eachOpenseaTokenId = openseaTokenIdArray[i];
+
+      async.timesSeries(activeItem.history, (j, next2) => {
+        const eachHistoryItem = activeItem.history[j];
+        if (eachHistoryItem.key == "buy" && eachHistoryItem.openseaTokenId == eachOpenseaTokenId) {
+          activeItem.history[j].isQrCodePrinted = true;
+          next1();
+        }
+        next2();
+      }, (err) => {
+        if (err) return callback("bad_request");
+        next1();
+      })
+    }, (err) => {
+      if (err) return callback("bad_request");
+
+      activeItem.save();
+      return callback(null, activeItem.history)
     })
   })
 }

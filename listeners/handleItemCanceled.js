@@ -4,7 +4,6 @@ const ethers = require("ethers");
 const networkMapping = require("../constants/networkMapping.json");
 const abi = require("../constants/abi.json");
 const { getIdFromParams } = require("../utils/getIdFromParams");
-require("ws");
 require("dotenv").config();
 
 const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];

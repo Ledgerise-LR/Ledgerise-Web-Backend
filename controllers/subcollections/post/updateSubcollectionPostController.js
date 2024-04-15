@@ -13,10 +13,9 @@ module.exports = (req, res) => {
 
     const imageData = fields.image[0];
     const subcollectionId = fields.subcollectionId[0];
-    const companyCode = fields.companyCode[0];
     const nftAddress = fields.nftAddress[0];
 
-    Subcollection.findOneAndUpdate({ itemId: subcollectionId, nftAddress: nftAddress }, { image: imageData, companyCode, companyCode }, (err, subcollection) => {
+    Subcollection.findOneAndUpdate({ companyCode: req.session.company.companyCode, itemId: subcollectionId, nftAddress: nftAddress }, { image: imageData }, (err, subcollection) => {
       if (err || !subcollection) return res.json({ success: false, err: err });
       return res.status(200).json({ success: true, subcollection });
     })

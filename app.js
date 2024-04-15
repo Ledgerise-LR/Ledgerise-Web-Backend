@@ -3,24 +3,19 @@ const http = require("http");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const app = express();
-const { getIdFromParams } = require("./utils/getIdFromParams");
 const updateAttributes = require("./utils/updateAttributes");
 const bodyParser = require('body-parser');
 const { connectRealTime } = require("./sockets");
 const { receiveImage } = require("./privacy");
 const verifyBlockchain = require("./utils/verifyBlockchain");
 require("./utils/uploadToPinata");
-const networkMapping = require("./constants/networkMapping.json");
 
 const session = require("express-session");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
 
-const { handleItemBought, handleItemListed, handleItemCanceled, handleSubcollectionCreated, handleAuctionCreated } = require("./listeners/exportListeners");
-
-const marketplaceAddress = networkMapping["Marketplace"][process.env.ACTIVE_CHAIN_ID];
-const nftAddress = networkMapping["MainCollection"][process.env.ACTIVE_CHAIN_ID];
+const {  handleItemCanceled, handleAuctionCreated } = require("./listeners/exportListeners");
 
 const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {
@@ -80,7 +75,7 @@ server.listen(PORT, async () => {
   handleItemCanceled();
   handleAuctionCreated();
 
-  connectRealTime(server, nftAddress);
+  connectRealTime(server);
   receiveImage(app);
 
   console.log("Server is listening on port", PORT);

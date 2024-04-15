@@ -18,8 +18,6 @@ const donorSchema = new mongoose.Schema({
 
   school_number: {
     type: String,
-    unique: true,
-    required: true
   },
 
   password: {
@@ -28,12 +26,10 @@ const donorSchema = new mongoose.Schema({
     required: true
   },
 
-  // phone_number: {
-  //   type: String,
-  //   trim: true,
-  //   required: false,
-  //   unique: false
-  // },
+  phone_number: {
+    type: String,
+    trim: true,
+  },
 
   // national_identification_number: {
   //   type: String,
@@ -52,10 +48,16 @@ const donorSchema = new mongoose.Schema({
 });
 
 donorSchema.statics.createNewDonor = function (body, callback) {
+  const donorBody = {
+    email: body.email,
+    phone_number: body.phone_number,
+    school_number: body.phone_number,
+    password: body.password
+  }
   Donor.findOne({email: body.email}, (err, donor) => {
     if (donor) return callback("duplicate_key");
     if (!donor) {
-      const newDonor = new Donor(body);
+      const newDonor = new Donor(donorBody);
       if (newDonor) {
         newDonor.save();
         return callback(null, newDonor);

@@ -12,29 +12,29 @@ const getNameFromCodePostController = require("../controllers/company/post/getNa
 const getAllItemsOfCompanyPostController = require("../controllers/company/post/getAllItemsOfCompanyPostController");
 const getCompanyFromCodePostController = require("../controllers/company/post/getCompanyFromCodePostController");
 
-router.get(
-  "/company/get-all-collections", 
+router.post(
+  "/get-all-collections", 
   getAllCollectionsOfCompanyGetController
 );
 
 router.get(
-  "/company/get-all", 
+  "/get-all", 
   getAllCompaniesGetController
 );
 
 router.post(
-  "/company/get-name-from-code", 
+  "/get-name-from-code", 
   getNameFromCodePostController
 );
 
 router.post(
-  "/company/get-company-from-code", 
+  "/get-company-from-code", 
   getCompanyFromCodePostController
 );
 
 
 router.post(
-  "/company/get-all-items", 
+  "/get-all-items", 
   getAllItemsOfCompanyPostController
 );
 

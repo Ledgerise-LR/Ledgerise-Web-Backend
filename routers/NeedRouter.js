@@ -4,6 +4,7 @@ const router = express.Router();
 
 // GET
 const getAllNeedsGetController = require("../controllers/need/get/getAllNeedsGetController");
+const getNeedItemNeedDetailsGetController = require("../controllers/need/get/getNeedItemNeedDetailsGetController")
 
 // POST
 const listNeedItemPostController = require("../controllers/need/post/listNeedItemPostController");
@@ -14,7 +15,7 @@ const isBeneficiaryLoggedIn = require("../middleware/isBeneficiaryLoggedIn");
 const isDonorLoggedIn = require("../middleware/isDonorLoggedIn");
 
 
-router.get(
+router.post(
   "/get-all-needs", 
   getAllNeedsGetController
 );
@@ -32,13 +33,18 @@ router.post(
   getSatisfiedDonationsOfDonorPostController
 )
 
+router.get(
+  "/get-need-item-need-details",
+  isDonorLoggedIn,
+  getNeedItemNeedDetailsGetController
+)
 
-router.post(
+router.get(
   "/get-satisfied-donations-of-donor", 
   listNeedItemPostController
 )
 
-router.post(
+router.get(
   "/get-needs-of-beneficiary",
   isBeneficiaryLoggedIn,
   getNeedsOfBeneficiaryPostController
