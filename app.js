@@ -6,7 +6,6 @@ const app = express();
 const updateAttributes = require("./utils/updateAttributes");
 const bodyParser = require('body-parser');
 const { connectRealTime } = require("./sockets");
-const { receiveImage } = require("./privacy");
 const verifyBlockchain = require("./utils/verifyBlockchain");
 require("./utils/uploadToPinata");
 
@@ -51,6 +50,7 @@ const depotRouter = require("./routers/DepotRouter");
 const donateRouter = require("./routers/DonateRouter");
 const donorRouter = require("./routers/DonorRouter");
 const needRouter = require("./routers/NeedRouter");
+const privacyRouter = require("./routers/PrivacyRouter");
 const reportsRouter = require("./routers/ReportsRouter");
 const subcollectionRouter = require("./routers/SubcollectionRouter");
 const tokenUriRouter = require("./routers/TokenUriRouter");
@@ -63,6 +63,7 @@ app.use("/depot", depotRouter);
 app.use("/donate", donateRouter);
 app.use("/donor", donorRouter);
 app.use("/need", needRouter);
+app.use("/privacy", privacyRouter);
 app.use("/reports", reportsRouter);
 app.use("/subcollection", subcollectionRouter);
 
@@ -76,7 +77,6 @@ server.listen(PORT, async () => {
   handleAuctionCreated();
 
   connectRealTime(server);
-  receiveImage(app);
 
   console.log("Server is listening on port", PORT);
 

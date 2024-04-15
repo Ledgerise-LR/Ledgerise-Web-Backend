@@ -3,8 +3,6 @@ const axios = require("axios");
 const { SERVER_URL, PORT } = require("./utils/serverUrl");
 const PATH_NAME = "/privacy/blur-visual";
 
-let receivedData = "";
-
 const processImage = (ipfsGatewayTokenUri, bounds) => {
   return new Promise((resolve, reject) => {
 
@@ -23,7 +21,6 @@ const processImage = (ipfsGatewayTokenUri, bounds) => {
 
 const receiveImage = (app) => {
   app.get(PATH_NAME, async (req, res) => {
-    receivedData = "";
     const ipfsGatewayTokenUri = req.query.ipfsGatewayTokenUri;
     const bounds = {
       x: parseFloat(req.query.x),
