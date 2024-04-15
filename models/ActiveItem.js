@@ -14,6 +14,7 @@ const {v4: uuidv4} = require("uuid");
 const Need = require("./Need");
 const Beneficiary = require("./Beneficiary");
 const { checkForBuyerPresence } = require("../utils/checkForBuyerPresence");
+const TokenUri = require("./tokenUri")
 
 require("dotenv").config();
 
