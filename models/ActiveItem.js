@@ -165,6 +165,16 @@ const activeItemSchema = new mongoose.Schema({
   listTransactionHash: {
     type: String,
     default: ""
+  },
+
+  isCanceled: {
+    type: Boolean,
+    default: false
+  },
+
+  cancelItemTransactionHash: {
+    type: String,
+    default: ""
   }
 });
 
@@ -373,6 +383,93 @@ activeItemSchema.statics.listItem = async function (body, callback) {
       return callback(null, newActiveItem);
     }
   });
+}
+
+
+activeItemSchema.statics.updateItem = function (body, callback) {
+  ActiveItem.findOne({ nftAddress: body.nftAddress, tokenId: body.tokenId }, async (err, activeItem) => {
+    if (err || !activeItem) return callback("cannot_found");
+    if (!err && activeItem) {
+
+      activeItem.price = body.price;
+      activeItem.tokenUri = body.tokenUri;
+
+      const marketplaceAddress = activeItem.marketplaceAddress;
+      
+      const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
+
+      const provider = new ethers.providers.WebSocketProvider(activeItem.providerUrl);
+      const signer = new ethers.Wallet(
+        `0x${process.env.OWNER_PRIVATE_KEY}`,
+        provider
+      );
+
+      const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+
+      const updateListingTx = await marketplace.updateListing(
+        activeItem.nftAddress,
+        activeItem.tokenId,
+        body.price,
+        activeItem.charityAddress,
+        body.tokenUri
+      );
+
+      const updateListingTxReceipt = await updateListingTx.wait(1);
+
+      const currentDate = new Date();
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+      const formattedDate = `${currentDate.getDate()} ${months[currentDate.getMonth()]} ${currentDate.getFullYear().toString()}`;
+
+      const updateTransactionHash = updateListingTxReceipt.transactionHash;
+
+      activeItem.history.push({
+        key: "update",
+        date: formattedDate,
+        price: body.price,
+        transactionHash: updateTransactionHash
+      });
+
+      await activeItem.save();
+      return callback(null, activeItem);
+    }
+  })
+}
+
+
+activeItemSchema.statics.cancelItem = function (body, callback) {
+
+  ActiveItem.findOne({ nftAddress: body.nftAddress, tokenId: body.tokenId }, async (err, activeItem) => {
+
+    if (err || !activeItem) return callback("cannot_found");
+    if (activeItem) {
+      activeItem.isCanceled = true;
+
+      const marketplaceAddress = activeItem.marketplaceAddress;
+      
+      const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
+
+      const provider = new ethers.providers.WebSocketProvider(activeItem.providerUrl);
+      const signer = new ethers.Wallet(
+        `0x${process.env.OWNER_PRIVATE_KEY}`,
+        provider
+      );
+
+      const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
+
+      const cancelItemTx = await marketplace.cancelItem(
+        activeItem.nftAddress,
+        activeItem.tokenId
+      );
+
+      const cancelItemTxReceipt = await cancelItemTx.wait(1);
+
+      activeItem.cancelItemTransactionHash = cancelItemTxReceipt.transactionHash;
+
+      await activeItem.save()
+      return callback(null, activeItem);
+    }
+  })
 }
 
 

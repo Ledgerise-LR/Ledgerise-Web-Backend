@@ -12,6 +12,8 @@ const getAllVisualVerificationsGetController = require("../controllers/activeIte
 const listActiveItemPostController = require("../controllers/activeItem/post/listActiveItemPostController");
 const getVisualVerificationsOfItemPostController = require("../controllers/activeItem/post/getVisualVerificationsOfItemPostController");
 const markQrCodeAsPrintedPostController = require("../controllers/activeItem/post/markQrCodeAsPrintedPostController.js")
+const updateActiveItemPostController = require("../controllers/activeItem/post/updateActiveItemPostController.js");
+const cancelActiveItemPostController = require("../controllers/activeItem/post/cancelActiveItemPostController.js");
 
 const isVerifierLoggedIn = require("../middleware/isVerifierLoggedIn");
 
@@ -46,6 +48,18 @@ router.post(
   isVerifierLoggedIn,
   listActiveItemPostController
 );
+
+router.post(
+  "/update-item",
+  isVerifierLoggedIn,
+  updateActiveItemPostController
+)
+
+router.post(
+  "/cancel-item",
+  isVerifierLoggedIn,
+  cancelActiveItemPostController
+)
 
 router.post(
   "/mark-qr-code-as-printed",

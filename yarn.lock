@@ -2232,6 +2232,11 @@
     "strip-ansi" "^6.0.0"
     "wrap-ansi" "^7.0.0"
 
+"cloc@^2.0.0-cloc":
+  "integrity" "sha512-hy6aS/5QbKlxyasequhfAOHOBzV1QpBeA01P8hnjnlV++OaRXazX3YLv5Mpqw0+Vh4FV4kiFhKYSV2x6CAKlpQ=="
+  "resolved" "https://registry.npmjs.org/cloc/-/cloc-2.0.0-cloc.tgz"
+  "version" "2.0.0-cloc"
+
 "clone-response@^1.0.2":
   "integrity" "sha512-ROoL94jJH2dUVML2Y/5PEDNaSHgeOdSDicUyS7izcF63G6sTc/FTjLub4b8Il9S8S0beOfYt0TaA5qvFK+w0wA=="
   "resolved" "https://registry.npmjs.org/clone-response/-/clone-response-1.0.3.tgz"
