@@ -62,7 +62,7 @@ router.get(
 
 router.post(
   "/create-subcollection", 
-  isVerifierLoggedIn,
+  // isVerifierLoggedIn,
   createSubcollectionPostController
 );
 

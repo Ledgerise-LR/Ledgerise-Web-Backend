@@ -1,5 +1,6 @@
 
 const Company = require("../../../models/Company");
+const formidable = require("formidable");
 
 module.exports = (req, res) => {
   const form = new formidable.IncomingForm();
