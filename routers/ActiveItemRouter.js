@@ -23,7 +23,7 @@ router.get(
   getAssetGetController
 );
 
-router.post(
+router.get(
   "/get-all-active-items", 
   getAllActiveItemsGetController
 );
@@ -45,7 +45,7 @@ router.post(
 
 router.post(
   "/list-item", 
-  isVerifierLoggedIn,
+  // isVerifierLoggedIn,
   listActiveItemPostController
 );
 

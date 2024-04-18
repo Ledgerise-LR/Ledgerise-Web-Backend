@@ -50,6 +50,14 @@ const subcollectionSchema = new mongoose.Schema({
 
   transactionHash: {
     type: String
+  },
+
+  blockExplorerUrl: {
+    type: String
+  },
+
+  chainId: {
+    type: Number
   }
 });
 

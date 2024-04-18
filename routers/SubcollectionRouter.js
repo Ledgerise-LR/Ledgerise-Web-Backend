@@ -25,7 +25,7 @@ router.get(
   getCollectionItemsGetController
 );
 
-router.post(
+router.get(
   "/get-all-collections", 
   getAllCollectionsGetController
 );

@@ -175,6 +175,14 @@ const activeItemSchema = new mongoose.Schema({
   cancelItemTransactionHash: {
     type: String,
     default: ""
+  },
+
+  blockExplorerUrl: {
+    type: String
+  }, 
+
+  chainId: {
+    type: String
   }
 });
 
@@ -227,7 +235,7 @@ activeItemSchema.statics.sortDefault = function (body, callback) {
 
   ActiveItem.find({
     subcollectionId: body.subcollectionId,
-    /*nftAddress: body.nftAddress*/
+    nftAddress: body.nftAddress
   }, (err, activeItems) => {
 
     if (err) return callback(err);
@@ -359,7 +367,9 @@ activeItemSchema.statics.listItem = async function (body, callback) {
       listingType: "ACTIVE_ITEM",
       needDetails: "",
       marketplaceAddress: subcollection.marketplaceAddress,
-      ledgeriseLensAddress: subcollection.ledgeriseLensAddress
+      ledgeriseLensAddress: subcollection.ledgeriseLensAddress,
+      blockExplorerUrl: subcollection.blockExplorerUrl,
+      chainId: subcollection.chainId
     };
 
     const newActiveItem = new ActiveItem(listItemBody);
@@ -1002,7 +1012,9 @@ activeItemSchema.statics.createSubcollection = async function (body, callback) {
     ledgeriseLensAddress: ledgeriseLensAddress,
     providerUrl: process.env.URL,
     image: body.image,
-    companyCode: body.companyCode
+    companyCode: body.companyCode,
+    blockExplorerUrl: process.env.BLOCK_EXPLORER_URL,
+    chainId: process.env.ACTIVE_CHAIN_ID
   }
 
   const newSubcollection = new Subcollection(createSubcollectionBlockchain);

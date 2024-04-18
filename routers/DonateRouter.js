@@ -23,7 +23,7 @@ router.post(
 
 router.post(
   "/payment/already_bought", 
-  isDonorLoggedIn,
+  // isDonorLoggedIn,
   donateAlreadyBoughtPostController
 );
 
