@@ -3,11 +3,14 @@ const Company = require("../../../models/Company");
 
 module.exports = (req, res) => {
 
-  let body = {};
-  if (req.session.company) {
+  const body = {};
+
+  if (req.query.code) {
+    body.code = req.query.code;
+  } else if (req.body.code) {
+    body.code = req.body.code;
+  } else if (req.session.company) {
     body = req.session.company
-  } else {
-    body.companyCode = req.body.companyCode
   }
 
   Company.getAllCollectionsOfCompany(body, (err, subcollections) => {

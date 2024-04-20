@@ -12,7 +12,7 @@ const getNameFromCodePostController = require("../controllers/company/post/getNa
 const getAllItemsOfCompanyPostController = require("../controllers/company/post/getAllItemsOfCompanyPostController");
 const getCompanyFromCodePostController = require("../controllers/company/post/getCompanyFromCodePostController");
 
-router.post(
+router.get(
   "/get-all-collections", 
   getAllCollectionsOfCompanyGetController
 );
@@ -27,13 +27,13 @@ router.post(
   getNameFromCodePostController
 );
 
-router.post(
+router.get(
   "/get-company-from-code", 
   getCompanyFromCodePostController
 );
 
 
-router.post(
+router.get(
   "/get-all-items", 
   getAllItemsOfCompanyPostController
 );

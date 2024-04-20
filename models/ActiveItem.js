@@ -1070,8 +1070,11 @@ activeItemSchema.statics.getSatisfiedDonationsOfDonor = async function (body, ca
 
 
 activeItemSchema.statics.getAsset = async function (body, callback) {
-  ActiveItem.findOne({ tokenId: body.tokenId, subcollectionId: body.subcollectionId, nftAddress: body.nftAddress, listingType: "ACTIVE_ITEM" }, (err, activeItem) => {
+  ActiveItem.findOne({ tokenId: body.tokenId, subcollectionId: body.subcollectionId, nftAddress: body.nftAddress, listingType: "ACTIVE_ITEM" }, async (err, activeItem) => {
     const groupedObjects = {};
+
+    const subcollection = await Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId });
+    const chainId = subcollection.chainId;
 
     if (!err && activeItem) {
       async.timesSeries(activeItem.real_item_history.length, (i, next) => {
@@ -1173,7 +1176,8 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                         real_item_history: groupedArray,
                         route: activeItem.route,
                         listTransactionHash: activeItem.transactionHash,
-                        collaborators: collaboratorClustersSet
+                        collaborators: collaboratorClustersSet,
+                        chainId: chainId || process.env.ACTIVE_CHAIN_ID
                       }
                     );
                   })
@@ -1194,7 +1198,8 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                       real_item_history: groupedArray,
                       route: activeItem.route,
                       listTransactionHash: activeItem.transactionHash,
-                      collaborators: collaboratorClustersSet
+                      collaborators: collaboratorClustersSet,
+                      chainId: chainId || process.env.ACTIVE_CHAIN_ID
                     }
                   );
                 }
@@ -1217,7 +1222,8 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                 real_item_history: groupedArray,
                 route: activeItem.route,
                 listTransactionHash: activeItem.transactionHash,
-                collaborators: []
+                collaborators: [],
+                chainId: chainId || process.env.ACTIVE_CHAIN_ID
               }
             );
           }

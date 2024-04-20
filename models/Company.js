@@ -128,7 +128,7 @@ companySchema.statics.getAllItems = function (body, callback) {
 
 companySchema.statics.getAllCollectionsOfCompany = async function (body, callback) {
 
-  subcollection.find({ companyCode: body.companyCode }, (err, subcollections) => {
+  subcollection.find({ companyCode: body.code }, (err, subcollections) => {
 
     let resArray = [];
 
@@ -142,6 +142,7 @@ companySchema.statics.getAllCollectionsOfCompany = async function (body, callbac
           itemId: eachSubcollection.itemId,
           name: eachSubcollection.name,
           image: eachSubcollection.image,
+          nftAddress: eachSubcollection.nftAddress,
           totalRaised: eachSubcollection.totalRaised,
           charityAddress: company.charityAddress,
           charityName: company.name,
