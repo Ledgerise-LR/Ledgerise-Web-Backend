@@ -1070,7 +1070,7 @@ activeItemSchema.statics.getSatisfiedDonationsOfDonor = async function (body, ca
 
 
 activeItemSchema.statics.getAsset = async function (body, callback) {
-  ActiveItem.findOne({ tokenId: body.tokenId, subcollectionId: body.subcollectionId, nftAddress: body.nftAddress, listingType: "ACTIVE_ITEM" }, async (err, activeItem) => {
+  ActiveItem.findOne({ tokenId: body.tokenId, subcollectionId: body.subcollectionId, nftAddress: body.nftAddress }, async (err, activeItem) => {
     const groupedObjects = {};
 
     const subcollection = await Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId });
