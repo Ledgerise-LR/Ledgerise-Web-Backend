@@ -14,7 +14,8 @@ const {v4: uuidv4} = require("uuid");
 const Need = require("./Need");
 const Beneficiary = require("./Beneficiary");
 const { checkForBuyerPresence } = require("../utils/checkForBuyerPresence");
-const TokenUri = require("./tokenUri")
+const TokenUri = require("./tokenUri");
+const { sendDonationEmail } = require("../utils/sendMail");
 
 require("dotenv").config();
 
@@ -768,7 +769,13 @@ activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) 
 
       activeItem.save();
       subcollection.save();
-      return callback(null, activeItem);
+
+      sendDonationEmail({
+        donor: body.phone_number
+      }, (err, data) => {
+        if (err) return console.log("Couldn't send email, please compensate it manually.")
+        return callback(null, activeItem);
+      })
     })
   })
 }
@@ -1074,8 +1081,10 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
     const groupedObjects = {};
 
     const subcollection = await Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId });
-    const chainId = subcollection.chainId;
+    let chainId = process.env.ACTIVE_CHAIN_ID;
+    if (subcollection) chainId = subcollection.chainId;
 
+    if (err || !activeItem) return callback("bad_request")
     if (!err && activeItem) {
       async.timesSeries(activeItem.real_item_history.length, (i, next) => {
         const obj = activeItem.real_item_history[i];
