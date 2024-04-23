@@ -771,7 +771,10 @@ activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) 
       subcollection.save();
 
       sendDonationEmail({
-        donor: body.phone_number
+        donor: body.phone_number,
+        tokenId: activeItem.tokenId,
+        subcollectionId: activeItem.subcollectionId,
+        nftAddress: activeItem.nftAddress
       }, (err, data) => {
         if (err) return console.log("Couldn't send email, please compensate it manually.")
         return callback(null, activeItem);

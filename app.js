@@ -9,8 +9,6 @@ const { connectRealTime } = require("./sockets");
 const verifyBlockchain = require("./utils/verifyBlockchain");
 require("./utils/uploadToPinata");
 
-const sendMail = require("./utils/sendMail");
-
 const session = require("express-session");
 
 const server = http.createServer(app);
