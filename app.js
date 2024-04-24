@@ -9,12 +9,14 @@ const { connectRealTime } = require("./sockets");
 const verifyBlockchain = require("./utils/verifyBlockchain");
 require("./utils/uploadToPinata");
 
+const { sendVerificationEmail } = require("./utils/sendMail");
+
 const session = require("express-session");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
 
-const {  handleItemCanceled, handleAuctionCreated } = require("./listeners/exportListeners");
+const { handleItemCanceled, handleAuctionCreated } = require("./listeners/exportListeners");
 
 const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {

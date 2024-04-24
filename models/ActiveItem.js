@@ -15,7 +15,7 @@ const Need = require("./Need");
 const Beneficiary = require("./Beneficiary");
 const { checkForBuyerPresence } = require("../utils/checkForBuyerPresence");
 const TokenUri = require("./tokenUri");
-const { sendDonationEmail } = require("../utils/sendMail");
+const { sendDonationEmail, sendVerificationEmail } = require("../utils/sendMail");
 
 require("dotenv").config();
 
@@ -978,7 +978,21 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
         activeItem.save();
 
         visualVerification.findByIdAndUpdate(body.visualVerificationItemId, { isUploadedToBlockchain: true }, (err, res) => {
-          return callback(null, activeItem)
+          
+          TokenUri.findOne({ tokenUri: activeItem.tokenUri }, (err, tokenUriObject) => {
+            const tokenName = tokenUriObject.name;
+
+            sendVerificationEmail({
+              tokenName: tokenName,
+              subcollectionId: activeItem.subcollectionId,
+              tokenId: activeItem.tokenId,
+              key: body.key,
+              donor: body.buyer,
+              nftAddress: activeItem.nftAddress
+            }, (err, data) => {
+              return callback(null, activeItem);
+            })
+          })
         })
 
         return callback(null, activeItem)
