@@ -9,7 +9,7 @@ const { connectRealTime } = require("./sockets");
 const verifyBlockchain = require("./utils/verifyBlockchain");
 require("./utils/uploadToPinata");
 
-const { sendVerificationEmail } = require("./utils/sendMail");
+const { sendDonationEmail } = require("./utils/sendMail");
 
 const session = require("express-session");
 
@@ -82,8 +82,8 @@ server.listen(PORT, async () => {
 
   console.log("Server is listening on port", PORT);
 
-  setInterval(() => {
-    verifyBlockchain();
-  }, 60000);
+  // setInterval(() => {
+  //   verifyBlockchain();
+  // }, 60000);
 })
 
