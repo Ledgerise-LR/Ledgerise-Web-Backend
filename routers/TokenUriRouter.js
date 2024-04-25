@@ -18,7 +18,7 @@ router.get(
 
 router.post(
   "/create", 
-  isCompanyLoggedIn,
+  // isCompanyLoggedIn,
   createTokenUriPostController
 );
 
