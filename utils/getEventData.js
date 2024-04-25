@@ -25,9 +25,12 @@ module.exports = (callback) => {
           }
 
           if (!visualVerification.visualVerificationTokenId) {
-            const ipfsHash = await uploadImageToPinata(body);
+            
+            if (!visualVerification.tokenUri) {
+              const ipfsHash = await uploadImageToPinata(body);
 
-            visualVerification.tokenUri = ipfsHash;
+              visualVerification.tokenUri = ipfsHash;
+            } 
             // console.log(ipfsHash)
             // visualVerification.base64_image = "";
 
@@ -47,7 +50,7 @@ module.exports = (callback) => {
 
           const realItemHistoryData = {
             visualVerificationItemId: visualVerification._id,
-            nftAddress: nftAddress,
+            nftAddress: visualVerification.nftAddress,
             marketplaceTokenId: visualVerification.tokenId,
             key: visualVerification.key,
             buyer: visualVerification.buyer,
