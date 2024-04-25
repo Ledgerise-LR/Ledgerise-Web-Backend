@@ -1,6 +1,7 @@
 
 const mongoose = require("mongoose");
 const formidable = require("formidable");
+const { storeImages } = require("../utils/uploadToPinata")
 
 const tokenUriSchema = new mongoose.Schema({
   name: {
