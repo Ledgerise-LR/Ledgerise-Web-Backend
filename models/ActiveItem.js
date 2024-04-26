@@ -1205,7 +1205,8 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                         route: activeItem.route,
                         listTransactionHash: activeItem.transactionHash,
                         collaborators: collaboratorClustersSet,
-                        chainId: chainId || process.env.ACTIVE_CHAIN_ID
+                        chainId: chainId || process.env.ACTIVE_CHAIN_ID,
+                        ledgeriseLensAddress: activeItem.ledgeriseLensAddress
                       }
                     );
                   })
@@ -1227,7 +1228,8 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                       route: activeItem.route,
                       listTransactionHash: activeItem.transactionHash,
                       collaborators: collaboratorClustersSet,
-                      chainId: chainId || process.env.ACTIVE_CHAIN_ID
+                      chainId: chainId || process.env.ACTIVE_CHAIN_ID,
+                      ledgeriseLensAddress: activeItem.ledgeriseLensAddress
                     }
                   );
                 }
@@ -1251,7 +1253,8 @@ activeItemSchema.statics.getAsset = async function (body, callback) {
                 route: activeItem.route,
                 listTransactionHash: activeItem.transactionHash,
                 collaborators: [],
-                chainId: chainId || process.env.ACTIVE_CHAIN_ID
+                chainId: chainId || process.env.ACTIVE_CHAIN_ID,
+                ledgeriseLensAddress: activeItem.ledgeriseLensAddress
               }
             );
           }
