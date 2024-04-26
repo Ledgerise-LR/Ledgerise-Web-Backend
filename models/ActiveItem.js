@@ -972,31 +972,32 @@ activeItemSchema.statics.saveRealItemHistory = async function (body, callback) {
           visualVerificationTokenId: body.visualVerificationTokenId
         }
 
-        const transactionHash = await saveToBlockchain(realItemHistoryBlockchainData)
+        saveToBlockchain(realItemHistoryBlockchainData, (err, transactionHash) => {
 
-        realItemHistoryData.transactionHash = transactionHash;
-        activeItem.real_item_history.push(realItemHistoryData);
-        activeItem.save();
+          realItemHistoryData.transactionHash = transactionHash;
+          activeItem.real_item_history.push(realItemHistoryData);
+          activeItem.save();
 
-        visualVerification.findByIdAndUpdate(body.visualVerificationItemId, { isUploadedToBlockchain: true }, (err, res) => {
-          
-          TokenUri.findOne({ tokenUri: activeItem.tokenUri }, (err, tokenUriObject) => {
-            const tokenName = tokenUriObject.name;
+          visualVerification.findByIdAndUpdate(body.visualVerificationItemId, { isUploadedToBlockchain: true }, (err, res) => {
+            
+            TokenUri.findOne({ tokenUri: activeItem.tokenUri }, (err, tokenUriObject) => {
+              const tokenName = tokenUriObject.name;
 
-            sendVerificationEmail({
-              tokenName: tokenName,
-              subcollectionId: activeItem.subcollectionId,
-              tokenId: activeItem.tokenId,
-              key: body.key,
-              donor: body.buyer,
-              nftAddress: activeItem.nftAddress
-            }, (err, data) => {
-              return callback(null, activeItem);
+              sendVerificationEmail({
+                tokenName: tokenName,
+                subcollectionId: activeItem.subcollectionId,
+                tokenId: activeItem.tokenId,
+                key: body.key,
+                donor: body.buyer,
+                nftAddress: activeItem.nftAddress
+              }, (err, data) => {
+                return callback(null, activeItem);
+              })
             })
           })
-        })
 
-        return callback(null, activeItem)
+          return callback(null, activeItem)
+        })
       })
     } else {
       return callback("bad_request", null);

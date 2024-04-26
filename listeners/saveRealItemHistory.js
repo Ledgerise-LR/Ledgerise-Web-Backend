@@ -6,7 +6,7 @@ const abi = require("../constants/abi.json");
 const { getIdFromParams } = require("../utils/getIdFromParams");
 require("dotenv").config();
 
-module.exports = async (realItemHistoryData) => {
+module.exports = (realItemHistoryData, callback) => {
   
   Subcollection.findOne({ nftAddress: realItemHistoryData.nftAddress, itemId: realItemHistoryData.subcollectionId }, async (err, subcollection) => {
 
@@ -40,7 +40,8 @@ module.exports = async (realItemHistoryData) => {
 
       const saveItemToRealHistoryTxReceipt = await saveItemToRealHistoryTx.wait(1);
 
-      return saveItemToRealHistoryTxReceipt.transactionHash
+      const transactionHash = saveItemToRealHistoryTxReceipt.transactionHash;
+      return callback(null, transactionHash);
     } catch (error) {
       console.log(error);
     }

@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const { connectRealTime } = require("./sockets");
 const verifyBlockchain = require("./utils/verifyBlockchain");
 require("./utils/uploadToPinata");
+const async = require("async");
 
 const { sendDonationEmail } = require("./utils/sendMail");
 
@@ -56,6 +57,7 @@ const privacyRouter = require("./routers/PrivacyRouter");
 const reportsRouter = require("./routers/ReportsRouter");
 const subcollectionRouter = require("./routers/SubcollectionRouter");
 const tokenUriRouter = require("./routers/TokenUriRouter");
+const visualVerification = require("./models/VisualVerification");
 
 app.use("/active-item", activeItemRouter);
 app.use("/tokenuri", tokenUriRouter);
