@@ -57,7 +57,6 @@ const privacyRouter = require("./routers/PrivacyRouter");
 const reportsRouter = require("./routers/ReportsRouter");
 const subcollectionRouter = require("./routers/SubcollectionRouter");
 const tokenUriRouter = require("./routers/TokenUriRouter");
-const visualVerification = require("./models/VisualVerification");
 
 app.use("/active-item", activeItemRouter);
 app.use("/tokenuri", tokenUriRouter);
