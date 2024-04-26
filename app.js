@@ -81,7 +81,5 @@ server.listen(PORT, async () => {
   connectRealTime(server);
 
   console.log("Server is listening on port", PORT);
-
-  verifyBlockchain();
 })
 
