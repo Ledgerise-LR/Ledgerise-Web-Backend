@@ -65,7 +65,7 @@ visualVerificationSchema.statics.createVisualVerification = function (body, call
     if (err) return callback("error");
     if (visualVerifications.length > 0) return callback("already_verified");
 
-    if (!body.key || !body.date || !body.tokenId) return callback("incompatible_data");
+    if (!body.key || !body.date || !body.tokenId.toString()) return callback("incompatible_data");
 
     const newVisualVerification = new visualVerification(body);
 
