@@ -1281,7 +1281,7 @@ activeItemSchema.statics.getRandomFeaturedAsset = async function (body, callback
     if (activeItems.length <= 0) {
       return callback("no_assets_found");
     }
-    Subcollection.findOne({ itemId: activeItems[randomIndex].subcollectionId }, (err, collection) => {
+    Subcollection.findOne({ itemId: activeItems[randomIndex].subcollectionId, nftAddress: activeItems[randomIndex].nftAddress }, (err, collection) => {
       randomIndexPrev = randomIndex;
 
       return callback(
