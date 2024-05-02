@@ -1,6 +1,6 @@
 
-
 const mongoose = require("mongoose");
+const { hashPassword, verifyPassword } = require("../utils/passwordFunctions");
 
 const donorSchema = new mongoose.Schema({
 
@@ -70,8 +70,13 @@ donorSchema.statics.createNewDonor = function (body, callback) {
 donorSchema.statics.loginDonor = function (body, callback) {
   Donor.findOne({ email: body.email }, (err, donor) => {
     if (err) return callback("bad_request");
-    if (donor && body.password == donor.password) return callback(null, donor);
-    return callback("verify_error")
+
+    if (donor && body.password && donor.password) {
+      verifyPassword(body.password, donor.password, (err, success) => {
+        if (err) return callback(err);
+        return callback(null, donor);
+      })
+    }
   })
 }
 
@@ -81,6 +86,9 @@ donorSchema.statics.authenticateDonor = function (body, callback) {
     return callback(null, donor);
   })
 }
+
+
+donorSchema.pre("save", hashPassword);
 
 const Donor = mongoose.model("donor", donorSchema);
 
