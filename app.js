@@ -7,6 +7,7 @@ const updateAttributes = require("./utils/updateAttributes");
 const bodyParser = require('body-parser');
 const { connectRealTime } = require("./sockets");
 const verifyBlockchain = require("./utils/verifyBlockchain");
+const cron = require("node-cron");
 const axios = require("axios");
 
 const session = require("express-session");
@@ -85,6 +86,9 @@ server.listen(PORT, async () => {
   axios.get(`https://api.telegram.org/bot${process.env.LEDGERISE_LENS_BOT_API_KEY}/setWebhook?url=${process.env.LEDGERISE_LENS_BOT_URL}`)
     .then(res => {
       console.log("Server is listening on port", PORT);
+      cron.schedule("*/2 * * * *", function () {
+        verifyBlockchain();
+      })
     })
 })
 
