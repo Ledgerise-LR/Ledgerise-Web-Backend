@@ -180,6 +180,7 @@ companySchema.statics.getAllCollections = async function (body, callback) {
           charityAddress: company.charityAddress,
           charityName: company.name,
           companyImage: company.image,
+          companyCode: company.code
         }
 
         resArray.push(data);
