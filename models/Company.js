@@ -76,7 +76,7 @@ companySchema.statics.createNewCompany = function (body, callback) {
 
 companySchema.statics.loginVerifier = function (body, callback) {
   Company.findOne({ code: body.code, password: body.password }, (err, company) => {
-    if (err) return callback("verify_error");
+    if (err || !company) return callback("verify_error");
     return callback(null, company);
   })
 }
