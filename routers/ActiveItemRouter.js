@@ -7,6 +7,7 @@ const getAssetGetController = require("../controllers/activeItem/get/getAssetGet
 const getAllActiveItemsGetController = require("../controllers/activeItem/get/getAllActiveItemsGetController");
 const getRandomFeaturedAssetGetController = require("../controllers/activeItem/get/getRandomFeaturedAssetGetController");
 const getAllVisualVerificationsGetController = require("../controllers/activeItem/get/getAllVisualVerificationsGetController");
+const getGeneralQrDataGetController = require("../controllers/activeItem/get/getGeneralQrDataGetController.js")
 
 // POST
 const listActiveItemPostController = require("../controllers/activeItem/post/listActiveItemPostController");
@@ -65,6 +66,11 @@ router.post(
   "/mark-qr-code-as-printed",
   isVerifierLoggedIn,
   markQrCodeAsPrintedPostController
+)
+
+router.get(
+  "/get-general-qr-data",
+  getGeneralQrDataGetController
 )
 
 module.exports = router;

@@ -1358,6 +1358,41 @@ activeItemSchema.statics.markQrCodeAsPrinted = async function (body, callback) {
 }
 
 
+activeItemSchema.statics.getGeneralQrData = function (body, callback) {
+
+  ActiveItem.findOne({ nftAddress: body.nftAddress, tokenId: parseInt(body.tokenId) }, (err, activeItem) => {
+
+    Subcollection.findOne({ nftAddress: activeItem.nftAddress, itemId: activeItem.subcollectionId }, (err, subcollection) => {
+
+      TokenUri.findOne({ tokenUri: activeItem.tokenUri }, (err, tokenUri) => {
+
+        const generalQrData = {
+          campaignName: subcollection.name,
+          assetName: tokenUri.name,
+          stampLocation: {
+            latitude: (parseInt(activeItem.route.stampLocation.latitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3),
+            longitude: (parseInt(activeItem.route.stampLocation.longitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3)
+          },
+          shipLocation: {
+            latitude: (parseInt(activeItem.route.shipLocation.latitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3),
+            longitude: (parseInt(activeItem.route.shipLocation.longitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3)
+          },
+          deliverLocation: {
+            latitude: (parseInt(activeItem.route.deliverLocation.latitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3),
+            longitude: (parseInt(activeItem.route.deliverLocation.longitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3)
+          },
+          nftAddress: activeItem.nftAddress,
+          marketplaceAddress: activeItem.marketplaceAddress,
+          ledgeriseLensAddress: activeItem.ledgeriseLensAddress
+        }
+
+        return callback(null, generalQrData);
+      })
+    })
+  })
+}
+
+
 const ActiveItem = mongoose.model("ActiveItem", activeItemSchema);
 
 module.exports = ActiveItem
