@@ -1337,7 +1337,7 @@ activeItemSchema.statics.markQrCodeAsPrinted = async function (body, callback) {
     
       const eachOpenseaTokenId = openseaTokenIdArray[i];
 
-      async.timesSeries(activeItem.history, (j, next2) => {
+      async.timesSeries(activeItem.history.length, (j, next2) => {
         const eachHistoryItem = activeItem.history[j];
         if (eachHistoryItem.key == "buy" && eachHistoryItem.openseaTokenId == eachOpenseaTokenId) {
           activeItem.history[j].isQrCodePrinted = true;
@@ -1346,7 +1346,6 @@ activeItemSchema.statics.markQrCodeAsPrinted = async function (body, callback) {
         next2();
       }, (err) => {
         if (err) return callback("bad_request");
-        next1();
       })
     }, (err) => {
       if (err) return callback("bad_request");
@@ -1366,27 +1365,31 @@ activeItemSchema.statics.getGeneralQrData = function (body, callback) {
 
       TokenUri.findOne({ tokenUri: activeItem.tokenUri }, (err, tokenUri) => {
 
-        const generalQrData = {
-          campaignName: subcollection.name,
-          assetName: tokenUri.name,
-          stampLocation: {
-            latitude: (parseInt(activeItem.route.stampLocation.latitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3),
-            longitude: (parseInt(activeItem.route.stampLocation.longitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3)
-          },
-          shipLocation: {
-            latitude: (parseInt(activeItem.route.shipLocation.latitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3),
-            longitude: (parseInt(activeItem.route.shipLocation.longitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3)
-          },
-          deliverLocation: {
-            latitude: (parseInt(activeItem.route.deliverLocation.latitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3),
-            longitude: (parseInt(activeItem.route.deliverLocation.longitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3)
-          },
-          nftAddress: activeItem.nftAddress,
-          marketplaceAddress: activeItem.marketplaceAddress,
-          ledgeriseLensAddress: activeItem.ledgeriseLensAddress
-        }
+        try {
+          const generalQrData = {
+            campaignName: subcollection.name,
+            assetName: tokenUri.name,
+            stampLocation: {
+              latitude: (parseInt(activeItem.route.stampLocation.latitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3),
+              longitude: (parseInt(activeItem.route.stampLocation.longitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3)
+            },
+            shipLocation: {
+              latitude: (parseInt(activeItem.route.shipLocation.latitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3),
+              longitude: (parseInt(activeItem.route.shipLocation.longitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3)
+            },
+            deliverLocation: {
+              latitude: (parseInt(activeItem.route.deliverLocation.latitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3),
+              longitude: (parseInt(activeItem.route.deliverLocation.longitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3)
+            },
+            nftAddress: activeItem.nftAddress,
+            marketplaceAddress: activeItem.marketplaceAddress,
+            ledgeriseLensAddress: activeItem.ledgeriseLensAddress
+          };
 
-        return callback(null, generalQrData);
+          return callback(null, generalQrData);
+        } catch (error) {
+          return callback("fetch_error"); 
+        }
       })
     })
   })

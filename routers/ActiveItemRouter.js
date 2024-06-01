@@ -64,7 +64,6 @@ router.post(
 
 router.post(
   "/mark-qr-code-as-printed",
-  isVerifierLoggedIn,
   markQrCodeAsPrintedPostController
 )
 
