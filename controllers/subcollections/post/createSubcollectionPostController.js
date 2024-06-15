@@ -14,12 +14,14 @@ module.exports = (req, res) => {
 
     const name = fields.name[0];
     const imageData = fields.image[0];
-    const companyCode = fields.companyCode[0];
+    const companyCode = fields.companyCode[0] || "";
+    const description = fields.description[0];
 
     const body = {
       name: name,
       image: imageData,
-      companyCode: companyCode
+      companyCode: companyCode || "",
+      description: description
     };
 
     ActiveItem.createSubcollection(body, (err, subcollection) => {

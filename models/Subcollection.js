@@ -15,6 +15,12 @@ const subcollectionSchema = new mongoose.Schema({
     trim: true
   },
 
+  description: {
+    type: String,
+    default: "",
+    trim: true
+  },
+
   nftAddress: {
     type: String,
     default: ""

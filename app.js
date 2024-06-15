@@ -9,13 +9,12 @@ const { connectRealTime } = require("./sockets");
 const verifyBlockchain = require("./utils/verifyBlockchain");
 const cron = require("node-cron");
 const axios = require("axios");
+const MongoStore = require("connect-mongo");
 
 const session = require("express-session");
 
 const server = http.createServer(app);
 const PORT = process.env.PORT || 4000;
-
-const { handleItemCanceled, handleAuctionCreated } = require("./listeners/exportListeners");
 
 const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/nft-fundraising-api";
 mongoose.connect(mongoUri, {
@@ -23,26 +22,21 @@ mongoose.connect(mongoUri, {
   useUnifiedTopology: true,
 });
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', `*`);
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
 app.use(express.json());
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
-}));
+app.set('trust proxy', 1);
 
 app.use(bodyParser.urlencoded({
   extended: true,
 }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', `*`); // Replace with your Next.js domain
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
-});
 
 const activeItemRouter = require("./routers/ActiveItemRouter");
 const authRouter = require("./routers/AuthRouter");
@@ -57,6 +51,15 @@ const reportsRouter = require("./routers/ReportsRouter");
 const subcollectionRouter = require("./routers/SubcollectionRouter");
 const tokenUriRouter = require("./routers/TokenUriRouter");
 const whatsappVerifierRouter = require("./routers/WhatsappRouter");
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false, 
+    saveUninitialized: false,
+    cookie: { secure: false, sameSite: "none", path: "/" }
+  })
+);
 
 app.use("/active-item", activeItemRouter);
 app.use("/bot", botRouter);
@@ -78,16 +81,13 @@ server.listen(PORT, async () => {
     updateAttributes();
   }, 6000000);
 
-  handleItemCanceled();
-  handleAuctionCreated();
-
   connectRealTime(server);
 
   axios.get(`https://api.telegram.org/bot${process.env.LEDGERISE_LENS_BOT_API_KEY}/setWebhook?url=${process.env.LEDGERISE_LENS_BOT_URL}`)
     .then(res => {
       console.log("Server is listening on port", PORT);
       cron.schedule("*/2 * * * *", function () {
-        verifyBlockchain();
+        // verifyBlockchain();
       })
     })
 })

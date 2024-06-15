@@ -38,6 +38,7 @@ tokenUriSchema.statics.createTokenUri = async function (req, callback) {
 
     const imageData = fields.image[0];
     const imageName = fields.name[0];
+    const companyCode = fields.companyCode[0];
     const description = fields.description[0];
     const attributesString = fields.attributes[0];
 
@@ -83,9 +84,9 @@ tokenUriSchema.statics.createTokenUri = async function (req, callback) {
       tokenUris.push(`ipfs://${metaDataUploadResponse.IpfsHash}`);
     }
 
-    TokenUri.addNewTokenUri({ name: imageName, tokenUri: tokenUris[0], companyCode: req.session.company.code }, (err, newTokenUri) => {
+    TokenUri.addNewTokenUri({ name: imageName, tokenUri: tokenUris[0], companyCode: companyCode || "no_code" }, (err, newTokenUri) => {
       if (err) return callback("bad_request");
-      return callback(null, newTokenUri);
+      return callback(null, tokenUris[0]);
     });
   });
 }

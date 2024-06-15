@@ -41,7 +41,7 @@ router.post(
 );
 
 router.post(
-  "/login-verifier", 
+  "/login-verifier",
   loginVerifierPostController
 );
 

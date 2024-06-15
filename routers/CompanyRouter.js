@@ -5,7 +5,8 @@ const router = express.Router();
 // Get
 const getAllCollectionsOfCompanyGetController = require("../controllers/company/get/getAllCollectionsOfCompanyGetController");
 const getAllCompaniesGetController = require("../controllers/company/get/getAllCompaniesGetController");
-
+const getCompanyPanelGetController = require("../controllers/company/get/getCompanyPanelGetController.js");
+const getCompanyStatisticsGetController = require("../controllers/company/get/getStatisticsGetController");
 
 // Post
 const getNameFromCodePostController = require("../controllers/company/post/getNameFromCodePostController");
@@ -37,6 +38,16 @@ router.get(
   "/get-all-items", 
   getAllItemsOfCompanyPostController
 );
+
+router.get(
+  "/get-company-panel-data",
+  getCompanyPanelGetController
+)
+
+router.get(
+  "/get-company-statistics",
+  getCompanyStatisticsGetController
+)
 
 
 module.exports = router;

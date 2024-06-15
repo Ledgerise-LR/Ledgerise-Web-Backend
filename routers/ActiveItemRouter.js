@@ -46,19 +46,16 @@ router.post(
 
 router.post(
   "/list-item", 
-  // isVerifierLoggedIn,
   listActiveItemPostController
 );
 
 router.post(
   "/update-item",
-  isVerifierLoggedIn,
   updateActiveItemPostController
 )
 
 router.post(
   "/cancel-item",
-  isVerifierLoggedIn,
   cancelActiveItemPostController
 )
 
