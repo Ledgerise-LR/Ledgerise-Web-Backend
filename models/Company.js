@@ -196,19 +196,51 @@ companySchema.statics.getAllCollections = async function (body, callback) {
 }
 
 const normalizeRouteData = (activeItem) => {
-  return {
-    stampLocation: {
-      latitude: (parseInt(activeItem.route.stampLocation.latitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3),
-      longitude: (parseInt(activeItem.route.stampLocation.longitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3)
-    },
-    shipLocation: {
-      latitude: (parseInt(activeItem.route.shipLocation.latitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3),
-      longitude: (parseInt(activeItem.route.shipLocation.longitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3)
-    },
-    deliverLocation: {
-      latitude: (parseInt(activeItem.route.deliverLocation.latitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3),
-      longitude: (parseInt(activeItem.route.deliverLocation.longitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3)
-    },
+
+  if (activeItem.route.stampLocation && activeItem.route.shipLocation && activeItem.route.deliverLocation) {
+    return {
+      stampLocation: {
+        latitude: (parseInt(activeItem.route.stampLocation.latitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3),
+        longitude: (parseInt(activeItem.route.stampLocation.longitude) / (10 ** parseInt(activeItem.route.stampLocation.decimals))).toFixed(3)
+      },
+      shipLocation: {
+        latitude: (parseInt(activeItem.route.shipLocation.latitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3),
+        longitude: (parseInt(activeItem.route.shipLocation.longitude) / (10 ** parseInt(activeItem.route.shipLocation.decimals))).toFixed(3)
+      },
+      deliverLocation: {
+        latitude: (parseInt(activeItem.route.deliverLocation.latitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3),
+        longitude: (parseInt(activeItem.route.deliverLocation.longitude) / (10 ** parseInt(activeItem.route.deliverLocation.decimals))).toFixed(3)
+      },
+    }
+  } else {
+    let template = {
+      stampLocation: {
+        latitude: "",
+        longitude: "",
+      },
+      shipLocation: {
+        latitude: "",
+        longitude: "",
+      },
+      deliverLocation: {
+        latitude: "",
+        longitude: "",
+      },
+    };
+    for (let i = 0; i < activeItem.route.length; i++) {
+      const temp = activeItem.route[i];
+      let latitude = (parseInt(temp[0]._hex) / (10 ** parseInt(temp[2]._hex))).toFixed(3);
+      let longitude = (parseInt(temp[1]._hex) / (10 ** parseInt(temp[2]._hex))).toFixed(3);
+
+      const tempObject = {
+        latitude: latitude,
+        longitude: longitude
+      };
+
+      i == 0 ? template.stampLocation = tempObject : i == 1 ? template.shipLocation = tempObject : i == 2 ? template.deliverLocation = tempObject : "";
+    }
+
+    return template;
   }
 }
 
