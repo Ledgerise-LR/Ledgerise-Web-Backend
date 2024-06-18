@@ -784,6 +784,7 @@ activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) 
         nftAddress: activeItem.nftAddress,
         collectionName: subcollection.name
       }, (err, data) => {
+        // console.log(data)
         if (err) return console.log("Couldn't send email, please compensate it manually.")
         return callback(null, activeItem);
       })
