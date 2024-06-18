@@ -7,7 +7,7 @@ module.exports = function (req, res) {
     company.password = "";
     company.image = "";
 
-
+    req.session.company = company
     return res.send({ success: true, company: company });  
   })
 }
