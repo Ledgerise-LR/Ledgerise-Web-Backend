@@ -91,40 +91,38 @@ const connectRealTime = (server) => {
 
               const openseaTokenId = parseInt(donorsArray[i]);
 
-              console.log(tokenId)
-              console.log(subcollectionId)
-              console.log(nftAddress)
-              console.log(openseaTokenId)
               const item = await ActiveItem.findOne({ tokenId: tokenId, subcollectionId: subcollectionId, nftAddress: nftAddress }).select({ history: { $elemMatch: { openseaTokenId: openseaTokenId } } });
 
-              console.log(item)
-              const buyer = item.history[0].buyer;
+              if (item) {
+              
+                const buyer = item.history[0].buyer;
 
-              const eventData = {
-                nftAddress: nftAddress,
-                tokenId: tokenId,
-                openseaTokenId: openseaTokenId,
-                base64_image: tempBase64Image,
-                buyer: buyer,
-                key: key,
-                location: location,
-                date: date,
-                isUploadedToBlockchain: false,
-                bounds: bounds,
+                const eventData = {
+                  nftAddress: nftAddress,
+                  tokenId: tokenId,
+                  openseaTokenId: openseaTokenId,
+                  base64_image: tempBase64Image,
+                  buyer: buyer,
+                  key: key,
+                  location: location,
+                  date: date,
+                  isUploadedToBlockchain: false,
+                  bounds: bounds,
+                }
+
+                VisualVerification.createVisualVerification(eventData, async (err, visualVerification) => {
+
+                  if (err == "error") await socket.emit("upload", `error-${i}-${donorsArray.length}`);
+
+                  if (err == "already_verified") await socket.emit("upload", `already_verified-${i}-${donorsArray.length}`);
+
+                  if (err == "incompatible_data") await socket.emit("upload", `incompatible_data-${i}-${donorsArray.length}`);
+
+                  if (!err && visualVerification) {
+                    await socket.emit("upload", `complete-${i}-${donorsArray.length}`)
+                  };
+                })
               }
-
-              VisualVerification.createVisualVerification(eventData, async (err, visualVerification) => {
-
-                if (err == "error") await socket.emit("upload", `error-${i}-${donorsArray.length}`);
-
-                if (err == "already_verified") await socket.emit("upload", `already_verified-${i}-${donorsArray.length}`);
-
-                if (err == "incompatible_data") await socket.emit("upload", `incompatible_data-${i}-${donorsArray.length}`);
-
-                if (!err && visualVerification) {
-                  await socket.emit("upload", `complete-${i}-${donorsArray.length}`)
-                };
-              })
             })
           }
         }
