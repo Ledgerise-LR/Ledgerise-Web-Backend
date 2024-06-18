@@ -122,6 +122,8 @@ const connectRealTime = (server) => {
                     await socket.emit("upload", `complete-${i}-${donorsArray.length}`)
                   };
                 })
+              } else {
+                await socket.emit("upload", `incompatible_data-${i}-${donorsArray.length}`);
               }
             })
           }
