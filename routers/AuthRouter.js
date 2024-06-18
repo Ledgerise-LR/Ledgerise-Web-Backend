@@ -5,6 +5,7 @@ const router = express.Router();
 // GET
 const authenticateBeneficiaryGetController = require("../controllers/auth/get/authenticateBeneficiaryGetController");
 const authenticateVerifierGetController = require("../controllers/auth/get/authenticateVerifierGetController");
+const authenticateCompanyGetController = require("../controllers/auth/get/authenticateCompanyGetController");
 
 // POST
 const authenticateDonorPostController = require("../controllers/auth/post/authenticateDonorPostController");
@@ -19,6 +20,11 @@ router.get(
   "/authenticate-verifier", 
   authenticateVerifierGetController
 );
+
+router.get(
+  "/authenticate-company",
+  authenticateCompanyGetController
+)
 
 router.get(
   "/authenticate-beneficiary", 
