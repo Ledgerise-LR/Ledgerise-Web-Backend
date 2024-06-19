@@ -81,14 +81,15 @@ server.listen(PORT, async () => {
     updateAttributes();
   }, 6000000);
 
+  setInterval(() => {
+    verifyBlockchain();
+  }, 30000)
+
   connectRealTime(server);
 
   axios.get(`https://api.telegram.org/bot${process.env.LEDGERISE_LENS_BOT_API_KEY}/setWebhook?url=${process.env.LEDGERISE_LENS_BOT_URL}`)
     .then(res => {
       console.log("Server is listening on port", PORT);
-      cron.schedule("*/2 * * * *", function () {
-        // verifyBlockchain();
-      })
     })
 })
 
