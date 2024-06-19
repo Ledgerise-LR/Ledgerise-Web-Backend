@@ -40,7 +40,7 @@ module.exports = async (openseaTokenId, tokenUri, buyer, key, tokenId, nftAddres
       );
 
       const mintVerificationTxReceipt = await mintVerificationTx.wait(1);
-
+      
       return {
         tokenId: tokenCounterInteger,
         transactionHash: mintVerificationTxReceipt.transactionHash

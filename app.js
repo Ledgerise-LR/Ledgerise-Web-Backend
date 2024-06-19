@@ -83,7 +83,7 @@ server.listen(PORT, async () => {
 
   setInterval(() => {
     verifyBlockchain();
-  }, 60000)
+  }, 120000)
 
   connectRealTime(server);
 

@@ -16,7 +16,7 @@ module.exports = (callback) => {
     if (err) return callback(err);
     if (visualVerifications.length >= 1) {
 
-      async.timesSeries(visualVerifications.length, async (i, next) => {
+      async.timesSeries(visualVerifications.slice(0, 5).length, async (i, next) => {
         const visualVerification = visualVerifications[i];
 
           const body = {
@@ -28,10 +28,8 @@ module.exports = (callback) => {
             
             if (!visualVerification.tokenUri) {
               const ipfsHash = await uploadImageToPinata(body);
-
               visualVerification.tokenUri = ipfsHash;
             } 
-            // console.log(ipfsHash)
             // visualVerification.base64_image = "";
 
             const { tokenId, transactionHash } = await mintVerification(
@@ -66,7 +64,6 @@ module.exports = (callback) => {
           }
 
           visualVerification.isVerificationMinted = true;
-
 
           eventDataArray.push(realItemHistoryData);
           visualVerification.save();
