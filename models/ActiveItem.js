@@ -248,7 +248,8 @@ activeItemSchema.statics.sortDefault = function (body, callback) {
 
       ? async.timesSeries(activeItems.length, (i, next) => {
         const activeItem = activeItems[i];
-        const price = parseFloat(ethers.utils.formatEther(activeItem.price, "ether"));
+        // const price = parseFloat(ethers.utils.formatEther(activeItem.price, "ether"));
+        const price = activeItem.price;
 
         let flag = 0;
 
@@ -302,6 +303,10 @@ activeItemSchema.statics.sortDefault = function (body, callback) {
 
 activeItemSchema.statics.sortPriceAscending = function (body, callback) {
   const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
+
+  filters.nftAddress = body.nftAddress;
+  filters.subcollectionId = body.subcollectionId;
+
   ActiveItem.find(filters)
     .sort({ price: 1 }).exec((err, docs) => {
       if (err) return callback(err);
@@ -311,6 +316,9 @@ activeItemSchema.statics.sortPriceAscending = function (body, callback) {
 
 activeItemSchema.statics.sortPriceDescending = function (body, callback) {
   const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
+
+  filters.nftAddress = body.nftAddress;
+  filters.subcollectionId = body.subcollectionId;
 
   ActiveItem.find(filters)
     .sort({ price: -1 }).exec((err, docs) => {
@@ -322,6 +330,9 @@ activeItemSchema.statics.sortPriceDescending = function (body, callback) {
 activeItemSchema.statics.sortOldest = function (body, callback) {
   const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
 
+  filters.nftAddress = body.nftAddress;
+  filters.subcollectionId = body.subcollectionId;
+
   ActiveItem.find(filters).sort({ timestamp_created: 1 }).exec((err, docs) => {
     if (err) return callback(err);
     return callback(null, docs);
@@ -331,6 +342,9 @@ activeItemSchema.statics.sortOldest = function (body, callback) {
 activeItemSchema.statics.sortNewest = function (body, callback) {
   const filters = getFiltersByQueries(body.priceFilter, body.availableEditionsFilter, body.subcollectionId);
 
+  filters.nftAddress = body.nftAddress;
+  filters.subcollectionId = body.subcollectionId;
+
   ActiveItem.find(filters).sort({ timestamp_created: -1 }).exec((err, docs) => {
     if (err) return callback(err);
     return callback(null, docs);
@@ -339,7 +353,11 @@ activeItemSchema.statics.sortNewest = function (body, callback) {
 
 activeItemSchema.statics.listItem = async function (body, callback) {
 
+  console.log("Listing...")
+
   Subcollection.findOne({ nftAddress: body.nftAddress, itemId: body.subcollectionId }, async (err, subcollection) => {
+
+    console.log("Found subcollection...");
 
     const marketplaceAddress = subcollection.marketplaceAddress;
     const marketplaceAbi = require(`../constants/abis/${marketplaceAddress}.json`);
@@ -352,7 +370,11 @@ activeItemSchema.statics.listItem = async function (body, callback) {
 
     const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
 
+    console.log("Got marketplace with address " + marketplace.address + "...");
+
     const tokenCounter = await marketplace.getListTokenCounter();
+
+    console.log("Got token counter " + tokenCounter + "...");
 
     const listItemBody = {
       itemId: `${subcollection.nftAddress}-${tokenCounter}`,
@@ -376,6 +398,10 @@ activeItemSchema.statics.listItem = async function (body, callback) {
 
     const newActiveItem = new ActiveItem(listItemBody);
     if (newActiveItem) {
+
+      const gasPrice = ethers.utils.parseUnits("30", "gwei"); // 50 gwei
+
+
       const listItemTx = await marketplace.listItem(
         subcollection.nftAddress,
         tokenCounter,
@@ -384,14 +410,22 @@ activeItemSchema.statics.listItem = async function (body, callback) {
         body.tokenUri,
         subcollection.itemId,
         body.availableEditions,
-        body.route
+        body.route,
+        {
+          gasPrice: gasPrice
+        }
       );
+
+      console.log("Tx sent");
     
       const listItemTxReceipt = await listItemTx.wait(1);
+
+      console.log("Got Tx receipt...")
 
       newActiveItem.listTransactionHash = listItemTxReceipt.transactionHash;
 
       await newActiveItem.save();
+      console.log("Item saved...")
       return callback(null, newActiveItem);
     }
   });
