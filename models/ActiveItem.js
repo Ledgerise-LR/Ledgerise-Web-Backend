@@ -1356,7 +1356,8 @@ activeItemSchema.statics.getReceiptData = async function (body, callback) {
         date: eachHistory.date,
         price: eachHistory.price,
         openseaTokenId: eachHistory.openseaTokenId,
-        subcollectionId: activeItem.subcollectionId
+        subcollectionId: activeItem.subcollectionId,
+        buyer: eachHistory.buyer
       }
 
       if (body.buyer && body.openseaTokenId && eachHistory.buyer == body.buyer && eachHistory.openseaTokenId == body.openseaTokenId) return callback(null, history);

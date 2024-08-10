@@ -8,7 +8,7 @@ const isDonorLoggedIn = require("../middleware/isDonorLoggedIn");
 
 router.post(
   "/get-receipt-data", 
-  isDonorLoggedIn,
+  // isDonorLoggedIn,
   getReceiptDataPostController
 );
 
