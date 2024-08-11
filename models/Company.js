@@ -178,6 +178,7 @@ companySchema.statics.getAllCollections = async function (body, callback) {
           image: eachSubcollection.image,
           totalRaised: eachSubcollection.totalRaised,
           nftAddress: eachSubcollection.nftAddress,
+          description: eachSubcollection.description,
           charityAddress: company.charityAddress,
           charityName: company.name,
           companyImage: company.image,
