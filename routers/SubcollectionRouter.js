@@ -68,7 +68,7 @@ router.post(
 
 router.post(
   "/update-subcollection-image", 
-  isVerifierLoggedIn,
+  // isVerifierLoggedIn,
   updateSubcollectionPostController
 );
 

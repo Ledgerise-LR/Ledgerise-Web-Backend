@@ -774,13 +774,18 @@ activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) 
 
       const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
 
+      let maxFeePerGas = ethers.BigNumber.from(20000000000) // fallback to 30 gwei
+      let maxPriorityFeePerGas = ethers.BigNumber.from(20000000000) // fallback to 30 gwei
+      
+
       const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
         activeItem.nftAddress,
         activeItem.tokenId,
         activeItem.charityAddress,
         activeItem.tokenUri,
         activeItem.price,
-        body.phone_number
+        body.phone_number,
+        {maxFeePerGas, maxPriorityFeePerGas}
       )
 
       const buyItemTxReceipt = await buyItemTx.wait(1);
@@ -1382,7 +1387,11 @@ activeItemSchema.statics.markQrCodeAsPrinted = async function (body, callback) {
 
       async.timesSeries(activeItem.history.length, (j, next2) => {
         const eachHistoryItem = activeItem.history[j];
+        console.log(eachHistoryItem.openseaTokenId)
+        console.log(eachOpenseaTokenId)
         if (eachHistoryItem.key == "buy" && eachHistoryItem.openseaTokenId == eachOpenseaTokenId) {
+
+          console.log("hello2")
           activeItem.history[j].isQrCodePrinted = true;
           next1();
         }
