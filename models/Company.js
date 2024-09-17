@@ -310,19 +310,20 @@ companySchema.statics.getCompanyPanelData = function (body, callback) {
                   if (!eachCollaboratorSet.includes(openseaTokenId) && eachCollaboratorSet.length < numberOfCollaborators) {
                     eachCollaboratorSet.push(openseaTokenId);
                     isAdded = true;
-                    next3();
+                    return next3();
                   }
                   next4();
                 }, (err) => {
                   const tempArr = []
                   tempArr.push(openseaTokenId);
                   if (!isAdded) collaboratorClustersArray.push(tempArr);
+                  return next3();
                 })
               }, (err) => {
                 activeItemObject.qrCodesArray = collaboratorClustersArray;
 
                 collectionObject.assets.push(activeItemObject);
-                next2();      
+                return next2();      
               })
 
             } else {

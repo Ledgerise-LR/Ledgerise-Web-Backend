@@ -6,8 +6,9 @@ module.exports = function (req, res) {
     if (err) return res.json({ success: false, err: err });
     company.password = "";
     company.image = "";
-
+    
     req.session.company = company;
+
     return res.send({ success: true, company: company });  
   })
 }
