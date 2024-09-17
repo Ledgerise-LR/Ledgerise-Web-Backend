@@ -774,8 +774,8 @@ activeItemSchema.statics.buyItemAlreadyBought = async function (body, callback) 
 
       const marketplace = new ethers.Contract(marketplaceAddress, marketplaceAbi, signer);
 
-      let maxFeePerGas = ethers.BigNumber.from(25000000000) // fallback to 30 gwei
-      let maxPriorityFeePerGas = ethers.BigNumber.from(25000000000) // fallback to 30 gwei
+      let maxFeePerGas = ethers.BigNumber.from(30000000000) // fallback to 30 gwei
+      let maxPriorityFeePerGas = ethers.BigNumber.from(30000000000) // fallback to 30 gwei
       
 
       const buyItemTx = await marketplace.connect(signer).buyItemWithFiatCurrency(
