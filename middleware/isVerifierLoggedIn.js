@@ -1,12 +1,17 @@
-
+const jwt = require('jsonwebtoken');
 const Company = require("../models/Company");
 
 module.exports = (req, res, next) => {
-  if (req.session.company != null || req.session.company != undefined) {
-    Company.authenticateVerifier(req.session.company, (err, company) => {
-      if (err || !company) return res.json({ success: false, err: err });
+  const token = req.headers['authorization'];
+  
+  if (!token) return res.status(401).json({ success: false, err: "No token provided" });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(401).json({ success: false, err: "Failed to authenticate token" });
+
+    Company.authenticateVerifier(decoded.companyId, (err, company) => {
+      if (err || !company) return res.status(401).json({ success: false, err: "Unauthorized" });
       return next();
-    })
-  }
-  else if (req.session.company == undefined) return res.json({ success: false, err: "auth_error" });
-}
+    });
+  });
+};
